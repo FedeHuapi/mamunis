@@ -1,0 +1,117 @@
+from decimal import Decimal
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.models.carrito import Carrito, CarritoItem
+from app.models.producto import Producto
+from app.schemas.carrito import (
+    ActualizarCantidadRequest,
+    AgregarItemRequest,
+    CarritoCreado,
+    CarritoItemResponse,
+    CarritoResponse,
+    ProductoEnItem,
+)
+
+router = APIRouter(prefix="/carrito", tags=["Carrito"])
+
+
+def _obtener_carrito(session_id: UUID, db: Session) -> Carrito:
+    carrito = db.query(Carrito).filter(Carrito.session_id == session_id).first()
+    if not carrito:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Carrito no encontrado")
+    return carrito
+
+
+def _obtener_item(item_id: int, db: Session) -> CarritoItem:
+    item = db.query(CarritoItem).filter(CarritoItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item no encontrado")
+    return item
+
+
+def _validar_stock(producto: Producto, cantidad: int) -> None:
+    if producto.stock < cantidad:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Stock insuficiente. Disponible: {producto.stock}",
+        )
+
+
+def _construir_respuesta(carrito: Carrito) -> CarritoResponse:
+    items = [
+        CarritoItemResponse(
+            id=item.id,
+            producto=ProductoEnItem.model_validate(item.producto),
+            cantidad=item.cantidad,
+        )
+        for item in carrito.items
+    ]
+    total = sum(item.producto.precio * item.cantidad for item in carrito.items) or Decimal("0")
+    return CarritoResponse(
+        session_id=carrito.session_id,
+        fecha_creacion=carrito.fecha_creacion,
+        items=items,
+        total=total,
+    )
+
+
+@router.post("/", response_model=CarritoCreado, status_code=status.HTTP_201_CREATED)
+def crear_carrito(db: Session = Depends(get_db)):
+    carrito = Carrito()
+    db.add(carrito)
+    db.commit()
+    db.refresh(carrito)
+    return carrito
+
+
+@router.get("/{session_id}", response_model=CarritoResponse)
+def obtener_carrito(session_id: UUID, db: Session = Depends(get_db)):
+    carrito = _obtener_carrito(session_id, db)
+    return _construir_respuesta(carrito)
+
+
+@router.post("/{session_id}/items", response_model=CarritoResponse, status_code=status.HTTP_201_CREATED)
+def agregar_item(session_id: UUID, datos: AgregarItemRequest, db: Session = Depends(get_db)):
+    carrito = _obtener_carrito(session_id, db)
+
+    producto = db.query(Producto).filter(Producto.id == datos.producto_id).first()
+    if not producto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
+
+    item_existente = next((i for i in carrito.items if i.producto_id == datos.producto_id), None)
+    cantidad_total = (item_existente.cantidad if item_existente else 0) + datos.cantidad
+    _validar_stock(producto, cantidad_total)
+
+    if item_existente:
+        item_existente.cantidad = cantidad_total
+    else:
+        db.add(CarritoItem(carrito_id=carrito.id, producto_id=datos.producto_id, cantidad=datos.cantidad))
+
+    db.commit()
+    db.refresh(carrito)
+    return _construir_respuesta(carrito)
+
+
+@router.patch("/items/{item_id}", response_model=CarritoItemResponse)
+def actualizar_cantidad(item_id: int, datos: ActualizarCantidadRequest, db: Session = Depends(get_db)):
+    item = _obtener_item(item_id, db)
+    _validar_stock(item.producto, datos.cantidad)
+    item.cantidad = datos.cantidad
+    db.commit()
+    db.refresh(item)
+    return CarritoItemResponse(
+        id=item.id,
+        producto=ProductoEnItem.model_validate(item.producto),
+        cantidad=item.cantidad,
+    )
+
+
+@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_item(item_id: int, db: Session = Depends(get_db)):
+    item = _obtener_item(item_id, db)
+    db.delete(item)
+    db.commit()
