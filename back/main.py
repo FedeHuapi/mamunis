@@ -1,10 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.database import Base, engine
 from app.routers import carrito, categorias, productos
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Mamunis API",
