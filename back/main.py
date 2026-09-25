@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import carrito, categorias, productos, usuario
+from app.routers import carrito, categorias, pedido, productos, usuario
 
 app = FastAPI(
     title="Mamunis API",
@@ -21,6 +21,7 @@ app.include_router(categorias.router)
 app.include_router(productos.router)
 app.include_router(carrito.router)
 app.include_router(usuario.router)
+app.include_router(pedido.router)
 
 
 @app.get("/")
