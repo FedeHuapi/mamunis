@@ -1,3 +1,6 @@
+from app.core.security import leer_usuario_id_del_token
+
+
 def test_registro_usuario(client):
     respuesta = client.post("/usuarios/", json={
         "nombre": "Federico",
@@ -21,12 +24,17 @@ def test_registro_email_duplicado(client):
     assert respuesta.status_code == 409
 
 
-def test_login_correcto(client):
-    client.post("/usuarios/", json={"nombre": "Federico", "email": "fede@mamunis.com", "password": "claveSegura123"})
+def test_login_correcto_devuelve_token_del_usuario(client):
+    usuario = client.post("/usuarios/", json={
+        "nombre": "Federico", "email": "fede@mamunis.com", "password": "claveSegura123",
+    }).json()
 
     respuesta = client.post("/usuarios/login", json={"email": "fede@mamunis.com", "password": "claveSegura123"})
 
     assert respuesta.status_code == 200
+    datos = respuesta.json()
+    assert datos["token_type"] == "bearer"
+    assert leer_usuario_id_del_token(datos["access_token"]) == usuario["id"]
 
 
 def test_login_password_incorrecta(client):

@@ -26,6 +26,7 @@ jobs:
 
     env:
       DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/mamunis_test_db
+      SECRET_KEY: clave-solo-para-ci-no-se-usa-en-ningun-entorno-real
 
     steps:
       - uses: actions/checkout@v4
