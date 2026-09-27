@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str = Field(..., min_length=32)
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
 
 settings = Settings()
