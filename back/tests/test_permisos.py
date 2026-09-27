@@ -21,8 +21,8 @@ ENDPOINTS_SOLO_ADMIN = [
 ESCRITURA_PUBLICA = {
     ("POST", "/carrito/"),
     ("POST", "/carrito/{session_id}/items"),
-    ("PATCH", "/carrito/items/{item_id}"),
-    ("DELETE", "/carrito/items/{item_id}"),
+    ("PATCH", "/carrito/{session_id}/items/{item_id}"),
+    ("DELETE", "/carrito/{session_id}/items/{item_id}"),
     ("POST", "/pedidos/"),
     ("POST", "/usuarios/"),
     ("POST", "/usuarios/login"),

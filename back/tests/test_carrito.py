@@ -31,10 +31,39 @@ def test_actualizar_cantidad_item(client, producto):
     session_id = carrito["session_id"]
     item = client.post(f"/carrito/{session_id}/items", json={"producto_id": producto.id, "cantidad": 1}).json()["items"][0]
 
-    respuesta = client.patch(f"/carrito/items/{item['id']}", json={"cantidad": 3})
+    respuesta = client.patch(f"/carrito/{session_id}/items/{item['id']}", json={"cantidad": 3})
 
     assert respuesta.status_code == 200
     assert respuesta.json()["cantidad"] == 3
+
+
+def _carrito_de_victima_y_atacante(client, producto):
+    victima = client.post("/carrito/").json()["session_id"]
+    item_victima = client.post(
+        f"/carrito/{victima}/items", json={"producto_id": producto.id, "cantidad": 1}
+    ).json()["items"][0]
+    atacante = client.post("/carrito/").json()["session_id"]
+    return victima, item_victima, atacante
+
+
+def test_no_se_puede_modificar_item_de_otro_carrito(client, producto):
+    victima, item_victima, atacante = _carrito_de_victima_y_atacante(client, producto)
+
+    respuesta = client.patch(f"/carrito/{atacante}/items/{item_victima['id']}", json={"cantidad": 5})
+
+    assert respuesta.status_code == 404
+    carrito_victima = client.get(f"/carrito/{victima}").json()
+    assert carrito_victima["items"][0]["cantidad"] == 1
+
+
+def test_no_se_puede_eliminar_item_de_otro_carrito(client, producto):
+    victima, item_victima, atacante = _carrito_de_victima_y_atacante(client, producto)
+
+    respuesta = client.delete(f"/carrito/{atacante}/items/{item_victima['id']}")
+
+    assert respuesta.status_code == 404
+    carrito_victima = client.get(f"/carrito/{victima}").json()
+    assert len(carrito_victima["items"]) == 1
 
 
 def test_eliminar_item_carrito(client, producto):
@@ -42,7 +71,7 @@ def test_eliminar_item_carrito(client, producto):
     session_id = carrito["session_id"]
     item = client.post(f"/carrito/{session_id}/items", json={"producto_id": producto.id, "cantidad": 1}).json()["items"][0]
 
-    respuesta = client.delete(f"/carrito/items/{item['id']}")
+    respuesta = client.delete(f"/carrito/{session_id}/items/{item['id']}")
     assert respuesta.status_code == 204
 
     carrito_actualizado = client.get(f"/carrito/{session_id}").json()
