@@ -1,4 +1,5 @@
 from app.core.security import leer_usuario_id_del_token
+from app.models.usuario import Usuario
 
 
 def test_registro_usuario(client):
@@ -13,6 +14,19 @@ def test_registro_usuario(client):
     assert datos["email"] == "fede@mamunis.com"
     assert "password" not in datos
     assert "password_hash" not in datos
+
+
+def test_registro_no_permite_hacerse_admin(client, db_session):
+    respuesta = client.post("/usuarios/", json={
+        "nombre": "Atacante",
+        "email": "atacante@mamunis.com",
+        "password": "claveSegura123",
+        "es_admin": True,
+    })
+
+    assert respuesta.status_code == 201
+    usuario = db_session.get(Usuario, respuesta.json()["id"])
+    assert usuario.es_admin is False
 
 
 def test_registro_email_duplicado(client):

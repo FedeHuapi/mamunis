@@ -43,6 +43,12 @@ alembic upgrade head         # aplica las migraciones y crea las tablas
 uvicorn main:app --reload
 ```
 
+Para crear el usuario administrador (el único que puede modificar el catálogo y gestionar pedidos):
+
+```bash
+python -m scripts.crear_admin
+```
+
 La API queda en `http://127.0.0.1:8000`. FastAPI genera documentación interactiva automática en `/docs` (Swagger) y `/redoc` — no hace falta mantenerla a mano, se actualiza sola con el código.
 
 ## Tests
