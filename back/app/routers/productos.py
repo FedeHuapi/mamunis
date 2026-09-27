@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.auth import requerir_admin
 from app.core.database import get_db
 from app.models.categoria import Categoria
 from app.models.producto import Producto
@@ -35,7 +36,7 @@ def obtener_producto(producto_id: int, db: Session = Depends(get_db)):
     return producto
 
 
-@router.post("/", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(requerir_admin)])
 def crear_producto(datos: ProductoCreate, db: Session = Depends(get_db)):
     _validar_categoria(datos.categoria_id, db)
     producto = Producto(**datos.model_dump())
@@ -45,7 +46,7 @@ def crear_producto(datos: ProductoCreate, db: Session = Depends(get_db)):
     return producto
 
 
-@router.patch("/{producto_id}", response_model=ProductoResponse)
+@router.patch("/{producto_id}", response_model=ProductoResponse, dependencies=[Depends(requerir_admin)])
 def actualizar_producto(producto_id: int, datos: ProductoUpdate, db: Session = Depends(get_db)):
     producto = db.query(Producto).filter(Producto.id == producto_id).first()
     if not producto:
@@ -59,7 +60,7 @@ def actualizar_producto(producto_id: int, datos: ProductoUpdate, db: Session = D
     return producto
 
 
-@router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(requerir_admin)])
 def eliminar_producto(producto_id: int, db: Session = Depends(get_db)):
     producto = db.query(Producto).filter(Producto.id == producto_id).first()
     if not producto:
