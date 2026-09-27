@@ -11,8 +11,10 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.core.database import Base, get_db
+from app.core.security import crear_token_acceso, hash_password
 from app.models.categoria import Categoria
 from app.models.producto import Producto, Talla
+from app.models.usuario import Usuario
 from main import app
 
 engine = create_engine(settings.DATABASE_URL)
@@ -50,6 +52,33 @@ def client(db_session):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+def _crear_usuario(db_session, email, es_admin):
+    usuario = Usuario(nombre="Test", email=email, password_hash=hash_password("claveSegura123"), es_admin=es_admin)
+    db_session.add(usuario)
+    db_session.commit()
+    return usuario
+
+
+@pytest.fixture()
+def usuario_cliente(db_session):
+    return _crear_usuario(db_session, "cliente@mamunis.com", es_admin=False)
+
+
+@pytest.fixture()
+def usuario_admin(db_session):
+    return _crear_usuario(db_session, "admin@mamunis.com", es_admin=True)
+
+
+@pytest.fixture()
+def headers_cliente(usuario_cliente):
+    return {"Authorization": f"Bearer {crear_token_acceso(usuario_cliente.id)}"}
+
+
+@pytest.fixture()
+def headers_admin(usuario_admin):
+    return {"Authorization": f"Bearer {crear_token_acceso(usuario_admin.id)}"}
 
 
 @pytest.fixture()
