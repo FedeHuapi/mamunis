@@ -1,5 +1,7 @@
 # Mamunis
 
+![Tests](https://github.com/FedeHuapi/mamunis/actions/workflows/tests.yml/badge.svg?branch=back-dev)
+
 Tienda online para un emprendimiento de ropa infantil llamado "Mamunis".
 
 ## Estado del proyecto
@@ -42,6 +44,21 @@ uvicorn main:app --reload
 ```
 
 La API queda en `http://127.0.0.1:8000`. FastAPI genera documentación interactiva automática en `/docs` (Swagger) y `/redoc` — no hace falta mantenerla a mano, se actualiza sola con el código.
+
+## Tests
+
+Los tests corren contra una base Postgres separada, para no tocar la de desarrollo.
+
+```bash
+pip install -r requirements-dev.txt
+
+createdb mamunis_test_db          # una sola vez
+copy .env.test.example .env.test  # y completar con tus credenciales
+
+pytest
+```
+
+Cada Pull Request corre esta misma suite automáticamente vía GitHub Actions (ver el badge arriba).
 
 ## Flujo de trabajo
 
