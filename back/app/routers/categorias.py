@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.auth import requerir_admin
 from app.core.database import get_db
 from app.models.categoria import Categoria
 from app.schemas.categoria import CategoriaCreate, CategoriaResponse, CategoriaUpdate
@@ -21,7 +22,7 @@ def obtener_categoria(categoria_id: int, db: Session = Depends(get_db)):
     return categoria
 
 
-@router.post("/", response_model=CategoriaResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=CategoriaResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(requerir_admin)])
 def crear_categoria(datos: CategoriaCreate, db: Session = Depends(get_db)):
     if db.query(Categoria).filter(Categoria.nombre == datos.nombre).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Ya existe una categoría con ese nombre")
@@ -32,7 +33,7 @@ def crear_categoria(datos: CategoriaCreate, db: Session = Depends(get_db)):
     return categoria
 
 
-@router.patch("/{categoria_id}", response_model=CategoriaResponse)
+@router.patch("/{categoria_id}", response_model=CategoriaResponse, dependencies=[Depends(requerir_admin)])
 def actualizar_categoria(categoria_id: int, datos: CategoriaUpdate, db: Session = Depends(get_db)):
     categoria = db.query(Categoria).filter(Categoria.id == categoria_id).first()
     if not categoria:
@@ -50,7 +51,7 @@ def actualizar_categoria(categoria_id: int, datos: CategoriaUpdate, db: Session 
     return categoria
 
 
-@router.delete("/{categoria_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{categoria_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(requerir_admin)])
 def eliminar_categoria(categoria_id: int, db: Session = Depends(get_db)):
     categoria = db.query(Categoria).filter(Categoria.id == categoria_id).first()
     if not categoria:

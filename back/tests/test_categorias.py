@@ -1,5 +1,5 @@
-def test_crear_categoria(client):
-    respuesta = client.post("/categorias/", json={"nombre": "Remeras", "descripcion": "Remeras de manga corta"})
+def test_crear_categoria(client, headers_admin):
+    respuesta = client.post("/categorias/", json={"nombre": "Remeras", "descripcion": "Remeras de manga corta"}, headers=headers_admin)
 
     assert respuesta.status_code == 201
     datos = respuesta.json()
@@ -7,16 +7,16 @@ def test_crear_categoria(client):
     assert "id" in datos
 
 
-def test_crear_categoria_duplicada(client):
-    client.post("/categorias/", json={"nombre": "Remeras"})
-    respuesta = client.post("/categorias/", json={"nombre": "Remeras"})
+def test_crear_categoria_duplicada(client, headers_admin):
+    client.post("/categorias/", json={"nombre": "Remeras"}, headers=headers_admin)
+    respuesta = client.post("/categorias/", json={"nombre": "Remeras"}, headers=headers_admin)
 
     assert respuesta.status_code == 409
 
 
-def test_listar_categorias(client):
-    client.post("/categorias/", json={"nombre": "Remeras"})
-    client.post("/categorias/", json={"nombre": "Pantalones"})
+def test_listar_categorias_es_publico(client, headers_admin):
+    client.post("/categorias/", json={"nombre": "Remeras"}, headers=headers_admin)
+    client.post("/categorias/", json={"nombre": "Pantalones"}, headers=headers_admin)
 
     respuesta = client.get("/categorias/")
 

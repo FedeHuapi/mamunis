@@ -61,11 +61,11 @@ def test_checkout_stock_insuficiente(client, producto, db_session):
     assert respuesta.status_code == 422
 
 
-def test_cancelar_pedido_restaura_stock(client, producto):
+def test_cancelar_pedido_restaura_stock(client, producto, headers_admin):
     session_id = _crear_carrito_con_item(client, producto, cantidad=2)
     pedido = client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO}).json()
 
-    respuesta = client.post(f"/pedidos/{pedido['id']}/cancelar")
+    respuesta = client.post(f"/pedidos/{pedido['id']}/cancelar", headers=headers_admin)
 
     assert respuesta.status_code == 200
     assert respuesta.json()["estado"] == "cancelado"
@@ -74,17 +74,17 @@ def test_cancelar_pedido_restaura_stock(client, producto):
     assert producto_actualizado["stock"] == 5  # vuelve al original
 
 
-def test_cancelar_pedido_ya_cancelado(client, producto):
+def test_cancelar_pedido_ya_cancelado(client, producto, headers_admin):
     session_id = _crear_carrito_con_item(client, producto, cantidad=1)
     pedido = client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO}).json()
-    client.post(f"/pedidos/{pedido['id']}/cancelar")
+    client.post(f"/pedidos/{pedido['id']}/cancelar", headers=headers_admin)
 
-    respuesta = client.post(f"/pedidos/{pedido['id']}/cancelar")
+    respuesta = client.post(f"/pedidos/{pedido['id']}/cancelar", headers=headers_admin)
 
     assert respuesta.status_code == 409
 
 
-def test_cancelar_pedido_inexistente(client):
-    respuesta = client.post("/pedidos/999/cancelar")
+def test_cancelar_pedido_inexistente(client, headers_admin):
+    respuesta = client.post("/pedidos/999/cancelar", headers=headers_admin)
 
     assert respuesta.status_code == 404
