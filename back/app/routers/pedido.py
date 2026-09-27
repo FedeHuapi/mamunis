@@ -3,6 +3,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.auth import requerir_admin
 from app.core.database import get_db
 from app.models.carrito import Carrito
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
@@ -59,12 +60,12 @@ def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
     return pedido
 
 
-@router.get("/{pedido_id}", response_model=PedidoResponse)
+@router.get("/{pedido_id}", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
 def obtener_pedido(pedido_id: int, db: Session = Depends(get_db)):
     return _obtener_pedido(pedido_id, db)
 
 
-@router.post("/{pedido_id}/cancelar", response_model=PedidoResponse)
+@router.post("/{pedido_id}/cancelar", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
 def cancelar_pedido(pedido_id: int, db: Session = Depends(get_db)):
     pedido = _obtener_pedido(pedido_id, db)
     if pedido.estado == EstadoPedido.CANCELADO:
