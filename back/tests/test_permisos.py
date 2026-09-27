@@ -12,7 +12,7 @@ ENDPOINTS_SOLO_ADMIN = [
     ("PATCH", "/productos/1"),
     ("DELETE", "/productos/1"),
     ("GET", "/pedidos/1"),
-    ("POST", "/pedidos/1/cancelar"),
+    ("PATCH", "/pedidos/1/estado"),
 ]
 
 # Endpoints de escritura que cualquiera puede usar a proposito (clientes e invitados).

@@ -7,7 +7,8 @@ from app.core.auth import requerir_admin
 from app.core.database import get_db
 from app.models.carrito import Carrito
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
-from app.schemas.pedido import PedidoCreate, PedidoResponse
+from app.schemas.pedido import CambiarEstadoRequest, PedidoCreate, PedidoResponse
+from app.services.pedido_service import TransicionInvalida, cambiar_estado
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 
@@ -65,15 +66,16 @@ def obtener_pedido(pedido_id: int, db: Session = Depends(get_db)):
     return _obtener_pedido(pedido_id, db)
 
 
-@router.post("/{pedido_id}/cancelar", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
-def cancelar_pedido(pedido_id: int, db: Session = Depends(get_db)):
-    pedido = _obtener_pedido(pedido_id, db)
-    if pedido.estado == EstadoPedido.CANCELADO:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El pedido ya esta cancelado")
+@router.patch("/{pedido_id}/estado", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
+def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session = Depends(get_db)):
+    pedido = db.query(Pedido).filter(Pedido.id == pedido_id).with_for_update().first()
+    if not pedido:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
 
-    for item in pedido.items:
-        item.producto.stock += item.cantidad
-    pedido.estado = EstadoPedido.CANCELADO
+    try:
+        cambiar_estado(pedido, datos.estado)
+    except TransicionInvalida as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error))
 
     db.commit()
     db.refresh(pedido)

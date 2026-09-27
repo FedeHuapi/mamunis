@@ -1,3 +1,5 @@
+from app.models.pedido import EstadoPedido, Pedido
+
 DATOS_CONTACTO = {
     "nombre_contacto": "Federico",
     "email_contacto": "fede@mamunis.com",
@@ -61,30 +63,65 @@ def test_checkout_stock_insuficiente(client, producto, db_session):
     assert respuesta.status_code == 422
 
 
-def test_cancelar_pedido_restaura_stock(client, producto, headers_admin):
-    session_id = _crear_carrito_con_item(client, producto, cantidad=2)
-    pedido = client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO}).json()
+def _crear_pedido(client, producto, cantidad=2):
+    session_id = _crear_carrito_con_item(client, producto, cantidad=cantidad)
+    return client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO}).json()["id"]
 
-    respuesta = client.post(f"/pedidos/{pedido['id']}/cancelar", headers=headers_admin)
+
+def _cambiar_estado(client, pedido_id, estado, headers):
+    return client.patch(f"/pedidos/{pedido_id}/estado", json={"estado": estado}, headers=headers)
+
+
+def test_pedido_recorre_todo_el_flujo_hasta_entregado(client, producto, headers_admin):
+    pedido_id = _crear_pedido(client, producto)
+
+    for estado in ["confirmado", "en_preparacion", "enviado", "entregado"]:
+        respuesta = _cambiar_estado(client, pedido_id, estado, headers_admin)
+        assert respuesta.status_code == 200
+        assert respuesta.json()["estado"] == estado
+
+
+def test_cancelar_pedido_restaura_stock(client, producto, headers_admin):
+    pedido_id = _crear_pedido(client, producto, cantidad=2)
+
+    respuesta = _cambiar_estado(client, pedido_id, "cancelado", headers_admin)
 
     assert respuesta.status_code == 200
     assert respuesta.json()["estado"] == "cancelado"
-
-    producto_actualizado = client.get(f"/productos/{producto.id}").json()
-    assert producto_actualizado["stock"] == 5  # vuelve al original
+    assert client.get(f"/productos/{producto.id}").json()["stock"] == 5  # vuelve al original
 
 
 def test_cancelar_pedido_ya_cancelado(client, producto, headers_admin):
-    session_id = _crear_carrito_con_item(client, producto, cantidad=1)
-    pedido = client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO}).json()
-    client.post(f"/pedidos/{pedido['id']}/cancelar", headers=headers_admin)
+    pedido_id = _crear_pedido(client, producto, cantidad=1)
+    _cambiar_estado(client, pedido_id, "cancelado", headers_admin)
 
-    respuesta = client.post(f"/pedidos/{pedido['id']}/cancelar", headers=headers_admin)
+    respuesta = _cambiar_estado(client, pedido_id, "cancelado", headers_admin)
 
     assert respuesta.status_code == 409
+    assert client.get(f"/productos/{producto.id}").json()["stock"] == 5  # no se repone dos veces
 
 
-def test_cancelar_pedido_inexistente(client, headers_admin):
-    respuesta = client.post("/pedidos/999/cancelar", headers=headers_admin)
+def test_no_se_puede_cancelar_pedido_entregado(client, producto, db_session, headers_admin):
+    pedido_id = _crear_pedido(client, producto, cantidad=2)
+    pedido = db_session.get(Pedido, pedido_id)
+    pedido.estado = EstadoPedido.ENTREGADO
+    db_session.commit()
+
+    respuesta = _cambiar_estado(client, pedido_id, "cancelado", headers_admin)
+
+    assert respuesta.status_code == 409
+    assert client.get(f"/productos/{producto.id}").json()["stock"] == 3  # no se "recupera" ropa ya entregada
+
+
+def test_estado_inexistente_devuelve_422(client, producto, headers_admin):
+    pedido_id = _crear_pedido(client, producto)
+
+    respuesta = _cambiar_estado(client, pedido_id, "perdido_en_el_correo", headers_admin)
+
+    assert respuesta.status_code == 422
+
+
+def test_cambiar_estado_pedido_inexistente(client, headers_admin):
+    respuesta = _cambiar_estado(client, 999, "confirmado", headers_admin)
 
     assert respuesta.status_code == 404
