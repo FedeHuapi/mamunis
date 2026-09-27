@@ -11,6 +11,7 @@ ENDPOINTS_SOLO_ADMIN = [
     ("POST", "/productos/"),
     ("PATCH", "/productos/1"),
     ("DELETE", "/productos/1"),
+    ("GET", "/pedidos/"),
     ("GET", "/pedidos/1"),
     ("PATCH", "/pedidos/1/estado"),
 ]

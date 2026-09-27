@@ -1,7 +1,7 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.auth import requerir_admin
 from app.core.database import get_db
@@ -59,6 +59,19 @@ def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(pedido)
     return pedido
+
+
+@router.get("/", response_model=list[PedidoResponse], dependencies=[Depends(requerir_admin)])
+def listar_pedidos(
+    estado: EstadoPedido | None = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Pedido).options(selectinload(Pedido.items).selectinload(PedidoItem.producto))
+    if estado is not None:
+        query = query.filter(Pedido.estado == estado)
+    return query.order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc()).offset(skip).limit(limit).all()
 
 
 @router.get("/{pedido_id}", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
