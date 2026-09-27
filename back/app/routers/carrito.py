@@ -26,8 +26,13 @@ def _obtener_carrito(session_id: UUID, db: Session) -> Carrito:
     return carrito
 
 
-def _obtener_item(item_id: int, db: Session) -> CarritoItem:
-    item = db.query(CarritoItem).filter(CarritoItem.id == item_id).first()
+def _obtener_item(session_id: UUID, item_id: int, db: Session) -> CarritoItem:
+    carrito = _obtener_carrito(session_id, db)
+    item = (
+        db.query(CarritoItem)
+        .filter(CarritoItem.id == item_id, CarritoItem.carrito_id == carrito.id)
+        .first()
+    )
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item no encontrado")
     return item
@@ -96,9 +101,11 @@ def agregar_item(session_id: UUID, datos: AgregarItemRequest, db: Session = Depe
     return _construir_respuesta(carrito)
 
 
-@router.patch("/items/{item_id}", response_model=CarritoItemResponse)
-def actualizar_cantidad(item_id: int, datos: ActualizarCantidadRequest, db: Session = Depends(get_db)):
-    item = _obtener_item(item_id, db)
+@router.patch("/{session_id}/items/{item_id}", response_model=CarritoItemResponse)
+def actualizar_cantidad(
+    session_id: UUID, item_id: int, datos: ActualizarCantidadRequest, db: Session = Depends(get_db)
+):
+    item = _obtener_item(session_id, item_id, db)
     _validar_stock(item.producto, datos.cantidad)
     item.cantidad = datos.cantidad
     db.commit()
@@ -110,8 +117,8 @@ def actualizar_cantidad(item_id: int, datos: ActualizarCantidadRequest, db: Sess
     )
 
 
-@router.delete("/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-def eliminar_item(item_id: int, db: Session = Depends(get_db)):
-    item = _obtener_item(item_id, db)
+@router.delete("/{session_id}/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+def eliminar_item(session_id: UUID, item_id: int, db: Session = Depends(get_db)):
+    item = _obtener_item(session_id, item_id, db)
     db.delete(item)
     db.commit()
