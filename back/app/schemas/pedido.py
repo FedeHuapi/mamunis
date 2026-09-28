@@ -15,6 +15,10 @@ class PedidoCreate(BaseModel):
     direccion_envio: str
 
 
+class CambiarEstadoRequest(BaseModel):
+    estado: EstadoPedido
+
+
 class ProductoEnPedido(BaseModel):
     id: int
     nombre: str

@@ -11,8 +11,9 @@ ENDPOINTS_SOLO_ADMIN = [
     ("POST", "/productos/"),
     ("PATCH", "/productos/1"),
     ("DELETE", "/productos/1"),
+    ("GET", "/pedidos/"),
     ("GET", "/pedidos/1"),
-    ("POST", "/pedidos/1/cancelar"),
+    ("PATCH", "/pedidos/1/estado"),
 ]
 
 # Endpoints de escritura que cualquiera puede usar a proposito (clientes e invitados).
@@ -21,8 +22,8 @@ ENDPOINTS_SOLO_ADMIN = [
 ESCRITURA_PUBLICA = {
     ("POST", "/carrito/"),
     ("POST", "/carrito/{session_id}/items"),
-    ("PATCH", "/carrito/items/{item_id}"),
-    ("DELETE", "/carrito/items/{item_id}"),
+    ("PATCH", "/carrito/{session_id}/items/{item_id}"),
+    ("DELETE", "/carrito/{session_id}/items/{item_id}"),
     ("POST", "/pedidos/"),
     ("POST", "/usuarios/"),
     ("POST", "/usuarios/login"),

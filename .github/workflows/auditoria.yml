@@ -1,0 +1,26 @@
+name: Auditoria de dependencias
+
+on:
+  push:
+    branches: [main, back-dev]
+  pull_request:
+  schedule:
+    - cron: "0 12 * * 1"  # lunes 9:00 (Argentina, UTC-3)
+
+jobs:
+  pip-audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Instalar pip-audit
+        run: pip install pip-audit==2.10.1
+
+      - name: Auditar dependencias de produccion
+        working-directory: back
+        run: pip-audit -r requirements.txt
