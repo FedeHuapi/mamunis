@@ -26,12 +26,12 @@ def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
     if not carrito:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Carrito no encontrado")
     if not carrito.items:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="El carrito esta vacio")
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="El carrito esta vacio")
 
     for item in carrito.items:
         if item.producto.stock < item.cantidad:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Stock insuficiente para '{item.producto.nombre}'. Disponible: {item.producto.stock}",
             )
 

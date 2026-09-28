@@ -1,6 +1,7 @@
 # Mamunis
 
 ![Tests](https://github.com/FedeHuapi/mamunis/actions/workflows/tests.yml/badge.svg?branch=back-dev)
+![Auditoría de dependencias](https://github.com/FedeHuapi/mamunis/actions/workflows/auditoria.yml/badge.svg?branch=back-dev)
 
 Tienda online para un emprendimiento de ropa infantil llamado "Mamunis".
 

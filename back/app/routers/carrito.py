@@ -41,7 +41,7 @@ def _obtener_item(session_id: UUID, item_id: int, db: Session) -> CarritoItem:
 def _validar_stock(producto: Producto, cantidad: int) -> None:
     if producto.stock < cantidad:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=f"Stock insuficiente. Disponible: {producto.stock}",
         )
 
