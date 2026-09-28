@@ -1,13 +1,14 @@
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.auth import requerir_admin
 from app.core.database import get_db
 from app.models.carrito import Carrito
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
-from app.schemas.pedido import PedidoCreate, PedidoResponse
+from app.schemas.pedido import CambiarEstadoRequest, PedidoCreate, PedidoResponse
+from app.services.pedido_service import TransicionInvalida, cambiar_estado
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 
@@ -60,20 +61,34 @@ def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
     return pedido
 
 
+@router.get("/", response_model=list[PedidoResponse], dependencies=[Depends(requerir_admin)])
+def listar_pedidos(
+    estado: EstadoPedido | None = None,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Pedido).options(selectinload(Pedido.items).selectinload(PedidoItem.producto))
+    if estado is not None:
+        query = query.filter(Pedido.estado == estado)
+    return query.order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc()).offset(skip).limit(limit).all()
+
+
 @router.get("/{pedido_id}", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
 def obtener_pedido(pedido_id: int, db: Session = Depends(get_db)):
     return _obtener_pedido(pedido_id, db)
 
 
-@router.post("/{pedido_id}/cancelar", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
-def cancelar_pedido(pedido_id: int, db: Session = Depends(get_db)):
-    pedido = _obtener_pedido(pedido_id, db)
-    if pedido.estado == EstadoPedido.CANCELADO:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El pedido ya esta cancelado")
+@router.patch("/{pedido_id}/estado", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
+def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session = Depends(get_db)):
+    pedido = db.query(Pedido).filter(Pedido.id == pedido_id).with_for_update().first()
+    if not pedido:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
 
-    for item in pedido.items:
-        item.producto.stock += item.cantidad
-    pedido.estado = EstadoPedido.CANCELADO
+    try:
+        cambiar_estado(pedido, datos.estado)
+    except TransicionInvalida as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error))
 
     db.commit()
     db.refresh(pedido)
