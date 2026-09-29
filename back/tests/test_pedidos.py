@@ -85,6 +85,8 @@ def test_pedido_recorre_todo_el_flujo_hasta_entregado(client, producto, headers_
         assert respuesta.status_code == 200
         assert respuesta.json()["estado"] == estado
 
+    assert client.get(f"/productos/{producto.id}").json()["stock"] == 3  # avanzar no toca el stock
+
 
 def test_cancelar_pedido_restaura_stock(client, producto, headers_admin):
     pedido_id = _crear_pedido(client, producto, cantidad=2)

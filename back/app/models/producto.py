@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Numeric, Enum as SAEnum, ForeignKey
+from sqlalchemy import CheckConstraint, Column, Integer, String, Text, Numeric, Enum as SAEnum, ForeignKey
 from sqlalchemy.orm import relationship
 import enum
 
@@ -23,6 +23,7 @@ class Talla(str, enum.Enum):
 
 class Producto(Base):
     __tablename__ = "productos"
+    __table_args__ = (CheckConstraint("stock >= 0", name="ck_productos_stock_no_negativo"),)
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(150), nullable=False)
