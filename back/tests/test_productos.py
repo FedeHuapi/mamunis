@@ -1,3 +1,7 @@
+import pytest
+from sqlalchemy import update
+from sqlalchemy.exc import IntegrityError
+
 from app.models.categoria import Categoria
 from app.models.producto import Producto, Talla
 
@@ -53,3 +57,9 @@ def test_eliminar_producto(client, producto, headers_admin):
 
     respuesta = client.get(f"/productos/{producto.id}")
     assert respuesta.status_code == 404
+
+
+def test_la_base_rechaza_stock_negativo_aunque_se_saltee_la_app(db_session, producto):
+    with pytest.raises(IntegrityError):
+        db_session.execute(update(Producto).where(Producto.id == producto.id).values(stock=-1))
+    db_session.rollback()
