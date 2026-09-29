@@ -2,11 +2,14 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env.test", override=True)
+RAIZ_BACK = Path(__file__).resolve().parent.parent
+load_dotenv(RAIZ_BACK / ".env.test", override=True)
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
@@ -21,11 +24,24 @@ engine = create_engine(settings.DATABASE_URL)
 TestingSessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
+def config_alembic() -> Config:
+    return Config(str(RAIZ_BACK / "alembic.ini"))
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _preparar_base_de_test():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    # La base de test se construye con las migraciones, igual que produccion, y no con
+    # create_all(): asi un error en una migracion hace fallar los tests.
+    with engine.begin() as conn:
+        conn.execute(text("DROP SCHEMA public CASCADE"))
+        conn.execute(text("CREATE SCHEMA public"))
+    command.upgrade(config_alembic(), "head")
     yield
+
+
+@pytest.fixture()
+def alembic_cfg():
+    return config_alembic()
 
 
 @pytest.fixture(autouse=True)
