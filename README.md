@@ -67,6 +67,15 @@ pytest
 
 Cada Pull Request corre esta misma suite automáticamente vía GitHub Actions (ver el badge arriba).
 
+## Notas para el deploy
+
+- Configurar `ENTORNO=produccion`, una `SECRET_KEY` propia y `CORS_ORIGINS` con el dominio del front.
+- Correr `alembic upgrade head` antes de levantar la API.
+- Si la API corre detrás de un proxy (lo habitual en un hosting), levantar uvicorn con
+  `--proxy-headers --forwarded-allow-ips=<IP del proxy>`. Sin eso, todos los clientes
+  parecen venir de la IP del proxy y el límite de intentos de login los bloquea a todos juntos.
+- Levantar uvicorn con `--no-server-header` para no anunciar qué servidor se usa.
+
 ## Flujo de trabajo
 
 - `main`: rama estable.
