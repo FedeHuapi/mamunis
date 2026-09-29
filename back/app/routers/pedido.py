@@ -3,11 +3,12 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.auth import requerir_admin
+from app.core.auth import get_usuario_opcional, requerir_admin
 from app.core.database import get_db
 from app.models.carrito import Carrito
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
 from app.models.producto import Producto
+from app.models.usuario import Usuario
 from app.schemas.pedido import CambiarEstadoRequest, PedidoCreate, PedidoResponse
 from app.services.pedido_service import (
     StockInsuficiente,
@@ -28,7 +29,11 @@ def _obtener_pedido(pedido_id: int, db: Session) -> Pedido:
 
 
 @router.post("/", response_model=PedidoResponse, status_code=status.HTTP_201_CREATED)
-def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
+def crear_pedido(
+    datos: PedidoCreate,
+    db: Session = Depends(get_db),
+    usuario: Usuario | None = Depends(get_usuario_opcional),
+):
     carrito = db.query(Carrito).filter(Carrito.session_id == datos.session_id).first()
     if not carrito:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Carrito no encontrado")
@@ -47,6 +52,7 @@ def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
 
     total = sum((item.producto.precio * item.cantidad for item in carrito.items), Decimal("0"))
     pedido = Pedido(
+        usuario_id=usuario.id if usuario else None,
         estado=EstadoPedido.PENDIENTE,
         nombre_contacto=datos.nombre_contacto,
         email_contacto=datos.email_contacto,

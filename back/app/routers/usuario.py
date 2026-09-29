@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.auth import get_usuario_actual
 from app.core.database import get_db
 from app.core.security import crear_token_acceso, hash_password, verify_password
+from app.models.pedido import Pedido, PedidoItem
 from app.models.usuario import Usuario
+from app.schemas.pedido import PedidoResponse
 from app.schemas.usuario import TokenResponse, UsuarioCreate, UsuarioLogin, UsuarioResponse
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
@@ -28,6 +30,24 @@ def crear_usuario(datos: UsuarioCreate, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UsuarioResponse)
 def obtener_usuario_actual(usuario: Usuario = Depends(get_usuario_actual)):
     return usuario
+
+
+@router.get("/me/pedidos", response_model=list[PedidoResponse])
+def listar_mis_pedidos(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    usuario: Usuario = Depends(get_usuario_actual),
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(Pedido)
+        .options(selectinload(Pedido.items).selectinload(PedidoItem.producto))
+        .filter(Pedido.usuario_id == usuario.id)
+        .order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
