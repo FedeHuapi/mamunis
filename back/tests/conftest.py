@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 from app.core.database import Base, get_db
+from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
 from app.core.security import crear_token_acceso, hash_password
 from app.models.categoria import Categoria
 from app.models.producto import Producto, Talla
@@ -26,6 +27,12 @@ def _preparar_base_de_test():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     yield
+
+
+@pytest.fixture(autouse=True)
+def _reiniciar_limitadores():
+    intentos_login_por_cuenta.reiniciar_todo()
+    intentos_login_por_ip.reiniciar_todo()
 
 
 @pytest.fixture(autouse=True)
