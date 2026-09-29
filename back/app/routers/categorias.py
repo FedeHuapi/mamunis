@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.auth import requerir_admin
@@ -10,7 +10,11 @@ router = APIRouter(prefix="/categorias", tags=["Categorías"])
 
 
 @router.get("/", response_model=list[CategoriaResponse])
-def listar_categorias(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+def listar_categorias(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
     return db.query(Categoria).offset(skip).limit(limit).all()
 
 
