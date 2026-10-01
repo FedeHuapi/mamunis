@@ -1,16 +1,21 @@
 from datetime import datetime
+from typing import Annotated
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import AfterValidator, BaseModel, EmailStr, Field
+
+# Los emails se guardan y se comparan siempre en minusculas: Fede@mail.com y
+# fede@mail.com son la misma cuenta.
+EmailNormalizado = Annotated[EmailStr, AfterValidator(str.lower)]
 
 
 class UsuarioCreate(BaseModel):
     nombre: str = Field(..., max_length=150)
-    email: EmailStr
+    email: EmailNormalizado
     password: str = Field(..., min_length=8, max_length=72)
 
 
 class UsuarioLogin(BaseModel):
-    email: EmailStr
+    email: EmailNormalizado
     password: str
 
 

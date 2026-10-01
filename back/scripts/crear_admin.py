@@ -15,6 +15,7 @@ LARGO_MINIMO_PASSWORD = 8
 
 
 def crear_o_promover_admin(db: Session, email: str, nombre: str | None = None, password: str | None = None) -> Usuario:
+    email = email.strip().lower()
     usuario = db.query(Usuario).filter(Usuario.email == email).first()
     if usuario:
         usuario.es_admin = True
@@ -31,7 +32,7 @@ def crear_o_promover_admin(db: Session, email: str, nombre: str | None = None, p
 
 
 def main() -> None:
-    email = input("Email del admin: ").strip()
+    email = input("Email del admin: ").strip().lower()
     db = SessionLocal()
     try:
         if db.query(Usuario).filter(Usuario.email == email).first():
