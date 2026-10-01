@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.auth import requerir_admin
@@ -17,8 +17,8 @@ def _validar_categoria(categoria_id: int, db: Session) -> None:
 
 @router.get("/", response_model=list[ProductoResponse])
 def listar_productos(
-    skip: int = 0,
-    limit: int = 20,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
     categoria_id: int | None = None,
     db: Session = Depends(get_db),
 ):
