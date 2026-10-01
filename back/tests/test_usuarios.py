@@ -63,3 +63,30 @@ def test_login_email_inexistente(client):
     respuesta = client.post("/usuarios/login", json={"email": "nadie@mamunis.com", "password": "algo"})
 
     assert respuesta.status_code == 401
+
+
+def test_registro_guarda_el_email_en_minusculas(client):
+    respuesta = client.post("/usuarios/", json={
+        "nombre": "Federico", "email": "Fede@Mamunis.com", "password": "claveSegura123",
+    })
+
+    assert respuesta.status_code == 201
+    assert respuesta.json()["email"] == "fede@mamunis.com"
+
+
+def test_registro_rechaza_el_mismo_email_con_otras_mayusculas(client):
+    client.post("/usuarios/", json={"nombre": "Federico", "email": "fede@mamunis.com", "password": "claveSegura123"})
+
+    respuesta = client.post("/usuarios/", json={
+        "nombre": "Otro", "email": "FEDE@mamunis.com", "password": "claveSegura123",
+    })
+
+    assert respuesta.status_code == 409
+
+
+def test_login_no_distingue_mayusculas_en_el_email(client):
+    client.post("/usuarios/", json={"nombre": "Federico", "email": "fede@mamunis.com", "password": "claveSegura123"})
+
+    respuesta = client.post("/usuarios/login", json={"email": "Fede@Mamunis.com", "password": "claveSegura123"})
+
+    assert respuesta.status_code == 200
