@@ -75,6 +75,9 @@ Cada Pull Request corre esta misma suite automáticamente vía GitHub Actions (v
   `--proxy-headers --forwarded-allow-ips=<IP del proxy>`. Sin eso, todos los clientes
   parecen venir de la IP del proxy y el límite de intentos de login los bloquea a todos juntos.
 - Levantar uvicorn con `--no-server-header` para no anunciar qué servidor se usa.
+- Configurar `CLOUDINARY_URL` (se copia del panel de Cloudinary) para poder subir imágenes de productos.
+- Limitar el tamaño de los requests en el proxy (por ejemplo `client_max_body_size 6m` en Nginx).
+  La API rechaza imágenes de más de 5 MB, pero recién después de recibir el archivo entero.
 
 ## Flujo de trabajo
 
