@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
 from app.core.security import crear_token_acceso, hash_password, verify_password
 from app.models.pedido import Pedido, PedidoItem
+from app.models.producto import Variante
 from app.models.usuario import Usuario
 from app.schemas.pedido import PedidoResponse
 from app.schemas.usuario import TokenResponse, UsuarioCreate, UsuarioLogin, UsuarioResponse
@@ -43,7 +44,7 @@ def listar_mis_pedidos(
 ):
     return (
         db.query(Pedido)
-        .options(selectinload(Pedido.items).selectinload(PedidoItem.producto))
+        .options(selectinload(Pedido.items).selectinload(PedidoItem.variante).selectinload(Variante.producto))
         .filter(Pedido.usuario_id == usuario.id)
         .order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc())
         .offset(skip)

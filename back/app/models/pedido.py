@@ -38,9 +38,17 @@ class PedidoItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     pedido_id = Column(Integer, ForeignKey("pedidos.id"), nullable=False)
-    producto_id = Column(Integer, ForeignKey("productos.id"), nullable=False)
+    variante_id = Column(Integer, ForeignKey("variantes.id"), nullable=False)
     cantidad = Column(Integer, nullable=False)
     precio_unitario = Column(Numeric(10, 2), nullable=False)  # copia del precio al momento de comprar, no cambia si el producto cambia de precio despues
 
     pedido = relationship("Pedido", back_populates="items")
-    producto = relationship("Producto")
+    variante = relationship("Variante")
+
+    @property
+    def producto(self):
+        return self.variante.producto
+
+    @property
+    def talla(self):
+        return self.variante.talla

@@ -21,8 +21,16 @@ class CarritoItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     carrito_id = Column(Integer, ForeignKey("carritos.id"), nullable=False)
-    producto_id = Column(Integer, ForeignKey("productos.id"), nullable=False)
+    variante_id = Column(Integer, ForeignKey("variantes.id"), nullable=False)
     cantidad = Column(Integer, nullable=False)
 
     carrito = relationship("Carrito", back_populates="items")
-    producto = relationship("Producto")
+    variante = relationship("Variante")
+
+    @property
+    def producto(self):
+        return self.variante.producto
+
+    @property
+    def talla(self):
+        return self.variante.talla

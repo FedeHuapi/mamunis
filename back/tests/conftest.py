@@ -17,7 +17,7 @@ from app.core.database import Base, get_db
 from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
 from app.core.security import crear_token_acceso, hash_password
 from app.models.categoria import Categoria
-from app.models.producto import Producto, Talla
+from app.models.producto import Producto, Variante
 from app.models.usuario import Usuario
 from main import app
 
@@ -117,10 +117,14 @@ def producto(db_session, categoria):
     producto = Producto(
         nombre="Remera Dino",
         precio=5000,
-        talla=Talla.T4,
         categoria_id=categoria.id,
-        stock=5,
+        variantes=[Variante(talla="10", stock=5)],
     )
     db_session.add(producto)
     db_session.commit()
     return producto
+
+
+@pytest.fixture()
+def variante(producto):
+    return producto.variantes[0]

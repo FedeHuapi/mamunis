@@ -30,6 +30,7 @@ class ProductoEnPedido(BaseModel):
 class PedidoItemResponse(BaseModel):
     id: int
     producto: ProductoEnPedido
+    talla: str
     cantidad: int
     precio_unitario: Decimal
 

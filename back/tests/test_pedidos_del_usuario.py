@@ -1,5 +1,5 @@
 from app.core.security import crear_token_acceso
-from app.models.producto import Producto
+from app.models.producto import Variante
 from app.models.usuario import Usuario
 
 DATOS_CONTACTO = {
@@ -12,7 +12,7 @@ DATOS_CONTACTO = {
 
 def _comprar(client, producto, headers=None, email_contacto="cliente@mamunis.com"):
     session_id = client.post("/carrito/").json()["session_id"]
-    client.post(f"/carrito/{session_id}/items", json={"producto_id": producto.id, "cantidad": 1})
+    client.post(f"/carrito/{session_id}/items", json={"variante_id": producto.variantes[0].id, "cantidad": 1})
     datos = {**DATOS_CONTACTO, "email_contacto": email_contacto, "session_id": session_id}
     return client.post("/pedidos/", json=datos, headers=headers or {})
 
@@ -67,7 +67,7 @@ def test_checkout_con_token_invalido_no_compra_nada(client, db_session, producto
 
     assert respuesta.status_code == 401
     db_session.expire_all()
-    assert db_session.get(Producto, producto.id).stock == 5  # no se reservo stock
+    assert db_session.get(Variante, producto.variantes[0].id).stock == 5  # no se reservo stock
 
 
 def test_mis_pedidos_sin_token_devuelve_401(client):
