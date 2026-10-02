@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
@@ -13,6 +13,14 @@ from app.schemas.producto import (
     VarianteCreate,
     VarianteResponse,
     VarianteUpdate,
+)
+from app.services.imagenes import (
+    FORMATOS_PERMITIDOS,
+    TAMANO_MAXIMO,
+    AlmacenCloudinary,
+    ErrorAlSubirImagen,
+    detectar_formato,
+    get_almacen_de_imagenes,
 )
 
 router = APIRouter(prefix="/productos", tags=["Productos"])
@@ -101,6 +109,38 @@ def actualizar_producto(producto_id: int, datos: ProductoUpdate, db: Session = D
 @router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(requerir_admin)])
 def eliminar_producto(producto_id: int, db: Session = Depends(get_db)):
     _eliminar(_obtener_producto(producto_id, db), db)
+
+
+@router.post("/{producto_id}/imagen", response_model=ProductoResponse, dependencies=[Depends(requerir_admin)])
+def subir_imagen(
+    producto_id: int,
+    archivo: UploadFile,
+    db: Session = Depends(get_db),
+    almacen: AlmacenCloudinary = Depends(get_almacen_de_imagenes),
+):
+    producto = _obtener_producto(producto_id, db)
+
+    # Se lee como mucho un byte mas que el maximo: alcanza para saber si se paso.
+    contenido = archivo.file.read(TAMANO_MAXIMO + 1)
+    if len(contenido) > TAMANO_MAXIMO:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail=f"La imagen no puede pesar más de {TAMANO_MAXIMO // (1024 * 1024)} MB",
+        )
+    if detectar_formato(contenido) is None:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"El archivo no es una imagen válida. Formatos: {', '.join(FORMATOS_PERMITIDOS)}",
+        )
+
+    try:
+        # El nombre lo decide el servidor, nunca el que sube el archivo.
+        producto.imagen = almacen.subir(contenido, f"producto-{producto.id}")
+    except ErrorAlSubirImagen:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo guardar la imagen")
+    db.commit()
+    db.refresh(producto)
+    return producto
 
 
 @router.post(
