@@ -30,3 +30,18 @@ def test_rechaza_password_corta(db_session):
 def test_usuario_nuevo_requiere_nombre_y_password(db_session):
     with pytest.raises(ValueError):
         crear_o_promover_admin(db_session, "admin@mamunis.com")
+
+
+def test_guarda_el_email_del_admin_en_minusculas(db_session):
+    admin = crear_o_promover_admin(db_session, "Admin@Mamunis.com", "Admin", "claveSegura123")
+
+    assert admin.email == "admin@mamunis.com"
+
+
+def test_promueve_aunque_el_email_venga_con_otras_mayusculas(db_session):
+    crear_o_promover_admin(db_session, "admin@mamunis.com", "Admin", "claveSegura123")
+
+    admin = crear_o_promover_admin(db_session, "ADMIN@mamunis.com")
+
+    assert db_session.query(Usuario).count() == 1
+    assert admin.es_admin is True

@@ -57,3 +57,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_pedidos_id'), table_name='pedidos')
     op.drop_table('pedidos')
     # ### end Alembic commands ###
+    # El autogenerate no borra los tipos enum de Postgres: sin esto, volver a aplicar
+    # la migracion falla con "ya existe el tipo estadopedido".
+    sa.Enum(name='estadopedido').drop(op.get_bind(), checkfirst=True)

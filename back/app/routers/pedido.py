@@ -3,12 +3,20 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.auth import requerir_admin
+from app.core.auth import get_usuario_opcional, requerir_admin
 from app.core.database import get_db
 from app.models.carrito import Carrito
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
+from app.models.producto import Producto
+from app.models.usuario import Usuario
 from app.schemas.pedido import CambiarEstadoRequest, PedidoCreate, PedidoResponse
-from app.services.pedido_service import TransicionInvalida, cambiar_estado
+from app.services.pedido_service import (
+    StockInsuficiente,
+    TransicionInvalida,
+    cambiar_estado,
+    cantidades_por_producto,
+    reservar_stock,
+)
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 
@@ -21,22 +29,30 @@ def _obtener_pedido(pedido_id: int, db: Session) -> Pedido:
 
 
 @router.post("/", response_model=PedidoResponse, status_code=status.HTTP_201_CREATED)
-def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
+def crear_pedido(
+    datos: PedidoCreate,
+    db: Session = Depends(get_db),
+    usuario: Usuario | None = Depends(get_usuario_opcional),
+):
     carrito = db.query(Carrito).filter(Carrito.session_id == datos.session_id).first()
     if not carrito:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Carrito no encontrado")
     if not carrito.items:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="El carrito esta vacio")
 
-    for item in carrito.items:
-        if item.producto.stock < item.cantidad:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=f"Stock insuficiente para '{item.producto.nombre}'. Disponible: {item.producto.stock}",
-            )
+    try:
+        reservar_stock(db, cantidades_por_producto(carrito.items))
+    except StockInsuficiente as error:
+        db.rollback()
+        producto = db.get(Producto, error.producto_id)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"Stock insuficiente para '{producto.nombre}'. Disponible: {producto.stock}",
+        )
 
     total = sum((item.producto.precio * item.cantidad for item in carrito.items), Decimal("0"))
     pedido = Pedido(
+        usuario_id=usuario.id if usuario else None,
         estado=EstadoPedido.PENDIENTE,
         nombre_contacto=datos.nombre_contacto,
         email_contacto=datos.email_contacto,
@@ -53,7 +69,6 @@ def crear_pedido(datos: PedidoCreate, db: Session = Depends(get_db)):
             cantidad=item.cantidad,
             precio_unitario=item.producto.precio,
         ))
-        item.producto.stock -= item.cantidad
         db.delete(item)
 
     db.commit()
@@ -86,7 +101,7 @@ def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session =
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
 
     try:
-        cambiar_estado(pedido, datos.estado)
+        cambiar_estado(db, pedido, datos.estado)
     except TransicionInvalida as error:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error))
 

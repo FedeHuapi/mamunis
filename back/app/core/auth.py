@@ -15,12 +15,7 @@ _NO_AUTENTICADO = HTTPException(
 )
 
 
-def get_usuario_actual(
-    credenciales: HTTPAuthorizationCredentials | None = Depends(_esquema_bearer),
-    db: Session = Depends(get_db),
-) -> Usuario:
-    if credenciales is None:
-        raise _NO_AUTENTICADO
+def _usuario_del_token(credenciales: HTTPAuthorizationCredentials, db: Session) -> Usuario:
     usuario_id = leer_usuario_id_del_token(credenciales.credentials)
     if usuario_id is None:
         raise _NO_AUTENTICADO
@@ -28,6 +23,26 @@ def get_usuario_actual(
     if usuario is None:
         raise _NO_AUTENTICADO
     return usuario
+
+
+def get_usuario_actual(
+    credenciales: HTTPAuthorizationCredentials | None = Depends(_esquema_bearer),
+    db: Session = Depends(get_db),
+) -> Usuario:
+    if credenciales is None:
+        raise _NO_AUTENTICADO
+    return _usuario_del_token(credenciales, db)
+
+
+def get_usuario_opcional(
+    credenciales: HTTPAuthorizationCredentials | None = Depends(_esquema_bearer),
+    db: Session = Depends(get_db),
+) -> Usuario | None:
+    # Sin token: invitado. Con token invalido o vencido: 401, no invitado en silencio,
+    # para que el cliente no crea que compro con su cuenta cuando no fue asi.
+    if credenciales is None:
+        return None
+    return _usuario_del_token(credenciales, db)
 
 
 def requerir_admin(usuario: Usuario = Depends(get_usuario_actual)) -> Usuario:
