@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -22,6 +24,8 @@ from app.services.imagenes import (
     detectar_formato,
     get_almacen_de_imagenes,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/productos", tags=["Productos"])
 
@@ -136,7 +140,8 @@ def subir_imagen(
     try:
         # El nombre lo decide el servidor, nunca el que sube el archivo.
         producto.imagen = almacen.subir(contenido, f"producto-{producto.id}")
-    except ErrorAlSubirImagen:
+    except ErrorAlSubirImagen as error:
+        logger.error("No se pudo subir la imagen del producto %s: %s", producto.id, error)
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo guardar la imagen")
     db.commit()
     db.refresh(producto)

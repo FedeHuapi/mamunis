@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -17,6 +18,8 @@ from app.services.pedido_service import (
     cantidades_por_variante,
     reservar_stock,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 
@@ -76,6 +79,10 @@ def crear_pedido(
 
     db.commit()
     db.refresh(pedido)
+    logger.info(
+        "Pedido %s creado: total=%s items=%s usuario=%s",
+        pedido.id, pedido.total, len(pedido.items), usuario.id if usuario else "invitado",
+    )
     return pedido
 
 
@@ -105,6 +112,7 @@ def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session =
     if not pedido:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
 
+    estado_anterior = pedido.estado
     try:
         cambiar_estado(db, pedido, datos.estado)
     except TransicionInvalida as error:
@@ -112,4 +120,5 @@ def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session =
 
     db.commit()
     db.refresh(pedido)
+    logger.info("Pedido %s: %s -> %s", pedido.id, estado_anterior.value, pedido.estado.value)
     return pedido

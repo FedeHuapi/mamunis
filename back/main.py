@@ -3,12 +3,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
+from app.core.logs import configurar_logs
 from app.core.seguridad_http import crear_middleware_de_headers, error_de_validacion, error_inesperado
 from app.routers import carrito, categorias, pedido, productos, usuario
 
 
 def crear_app(entorno: str = settings.ENTORNO) -> FastAPI:
     es_produccion = entorno == "produccion"
+    configurar_logs(settings.LOG_LEVEL)
 
     app = FastAPI(
         title="Mamunis API",

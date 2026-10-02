@@ -1,10 +1,14 @@
-from fastapi import Depends, HTTPException, status
+import logging
+
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import leer_usuario_id_del_token
 from app.models.usuario import Usuario
+
+logger = logging.getLogger(__name__)
 
 _esquema_bearer = HTTPBearer(auto_error=False)
 
@@ -45,7 +49,12 @@ def get_usuario_opcional(
     return _usuario_del_token(credenciales, db)
 
 
-def requerir_admin(usuario: Usuario = Depends(get_usuario_actual)) -> Usuario:
+def requerir_admin(request: Request, usuario: Usuario = Depends(get_usuario_actual)) -> Usuario:
     if not usuario.es_admin:
+        logger.warning("Acceso denegado: usuario %s intento %s %s", usuario.id, request.method, request.url.path)
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Se requieren permisos de administrador")
+    # Todo endpoint de admin pasa por aca, asi que cada cambio queda registrado sin
+    # depender de que alguien se acuerde de loguearlo en el endpoint.
+    if request.method != "GET":
+        logger.info("Admin %s: %s %s", usuario.id, request.method, request.url.path)
     return usuario
