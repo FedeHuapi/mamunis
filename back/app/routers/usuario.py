@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session, selectinload
 
@@ -7,9 +9,12 @@ from app.core.database import get_db
 from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
 from app.core.security import crear_token_acceso, hash_password, verify_password
 from app.models.pedido import Pedido, PedidoItem
+from app.models.producto import Variante
 from app.models.usuario import Usuario
 from app.schemas.pedido import PedidoResponse
 from app.schemas.usuario import TokenResponse, UsuarioCreate, UsuarioLogin, UsuarioResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
@@ -26,6 +31,7 @@ def crear_usuario(datos: UsuarioCreate, db: Session = Depends(get_db)):
     db.add(usuario)
     db.commit()
     db.refresh(usuario)
+    logger.info("Cuenta creada: usuario %s", usuario.id)
     return usuario
 
 
@@ -43,7 +49,7 @@ def listar_mis_pedidos(
 ):
     return (
         db.query(Pedido)
-        .options(selectinload(Pedido.items).selectinload(PedidoItem.producto))
+        .options(selectinload(Pedido.items).selectinload(PedidoItem.variante).selectinload(Variante.producto))
         .filter(Pedido.usuario_id == usuario.id)
         .order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc())
         .offset(skip)
@@ -64,6 +70,7 @@ def login(datos: UsuarioLogin, request: Request, db: Session = Depends(get_db)):
         intentos_login_por_ip.segundos_de_bloqueo(ip),
     )
     if espera:
+        logger.warning("Login bloqueado por demasiados intentos: email=%r ip=%s", datos.email, ip)
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Demasiados intentos fallidos. Probá de nuevo más tarde.",
@@ -74,7 +81,9 @@ def login(datos: UsuarioLogin, request: Request, db: Session = Depends(get_db)):
     if not usuario or not verify_password(datos.password, usuario.password_hash):
         intentos_login_por_cuenta.registrar_fallo(clave_cuenta)
         intentos_login_por_ip.registrar_fallo(ip)
+        logger.warning("Login fallido: email=%r ip=%s", datos.email, ip)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Email o contraseña incorrectos")
 
     intentos_login_por_cuenta.reiniciar(clave_cuenta)
+    logger.info("Login correcto: usuario %s ip=%s", usuario.id, ip)
     return TokenResponse(access_token=crear_token_acceso(usuario.id))

@@ -13,7 +13,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
-from app.models.producto import Producto
+from app.models.producto import Variante
 from app.services.pedido_service import StockInsuficiente, cambiar_estado, reservar_stock
 
 
@@ -45,17 +45,17 @@ def _en_otro_hilo(funcion):
     return hilo, resultado
 
 
-def test_dos_compras_simultaneas_por_la_ultima_unidad(db_session, producto):
-    producto.stock = 1
+def test_dos_compras_simultaneas_por_la_ultima_unidad(db_session, variante):
+    variante.stock = 1
     db_session.commit()
     engine = db_session.get_bind()
     compra_a, compra_b = Session(bind=engine), Session(bind=engine)
 
     try:
-        reservar_stock(compra_a, {producto.id: 1})  # A reserva la ultima unidad, sin confirmar
+        reservar_stock(compra_a, {variante.id: 1})  # A reserva la ultima unidad, sin confirmar
 
         def compra_b_intenta():
-            reservar_stock(compra_b, {producto.id: 1})
+            reservar_stock(compra_b, {variante.id: 1})
             compra_b.commit()
 
         hilo, resultado_b = _en_otro_hilo(compra_b_intenta)
@@ -70,15 +70,15 @@ def test_dos_compras_simultaneas_por_la_ultima_unidad(db_session, producto):
 
     assert isinstance(resultado_b.get("error"), StockInsuficiente), "La segunda compra no deberia haberse concretado"
     db_session.expire_all()
-    assert db_session.get(Producto, producto.id).stock == 0
+    assert db_session.get(Variante, variante.id).stock == 0
 
 
-def test_cancelar_mientras_alguien_compra_no_pisa_la_compra(db_session, producto):
-    producto.stock = 5
+def test_cancelar_mientras_alguien_compra_no_pisa_la_compra(db_session, variante):
+    variante.stock = 5
     pedido = Pedido(
         estado=EstadoPedido.CONFIRMADO, nombre_contacto="X", email_contacto="x@x.com",
         telefono_contacto="1", direccion_envio="X", total=10000,
-        items=[PedidoItem(producto_id=producto.id, cantidad=2, precio_unitario=5000)],
+        items=[PedidoItem(variante_id=variante.id, cantidad=2, precio_unitario=5000)],
     )
     db_session.add(pedido)
     db_session.commit()
@@ -86,7 +86,7 @@ def test_cancelar_mientras_alguien_compra_no_pisa_la_compra(db_session, producto
     compra, cancelacion = Session(bind=engine), Session(bind=engine)
 
     try:
-        reservar_stock(compra, {producto.id: 1})  # alguien compra 1 unidad, sin confirmar todavia
+        reservar_stock(compra, {variante.id: 1})  # alguien compra 1 unidad, sin confirmar todavia
 
         def cancelacion_en_curso():
             cambiar_estado(cancelacion, cancelacion.get(Pedido, pedido.id), EstadoPedido.CANCELADO)
@@ -104,4 +104,4 @@ def test_cancelar_mientras_alguien_compra_no_pisa_la_compra(db_session, producto
 
     assert "error" not in resultado, resultado.get("error")
     db_session.expire_all()
-    assert db_session.get(Producto, producto.id).stock == 6  # 5 - 1 comprada + 2 devueltas
+    assert db_session.get(Variante, variante.id).stock == 6  # 5 - 1 comprada + 2 devueltas

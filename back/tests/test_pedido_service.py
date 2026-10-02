@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from app.models.pedido import EstadoPedido
-from app.services.pedido_service import TransicionInvalida, cantidades_por_producto, validar_transicion
+from app.services.pedido_service import TransicionInvalida, cantidades_por_variante, validar_transicion
 
 E = EstadoPedido
 
@@ -32,11 +32,11 @@ def test_transicion_prohibida(actual, nuevo):
         validar_transicion(actual, nuevo)
 
 
-def test_cantidades_por_producto_suma_items_del_mismo_producto():
+def test_cantidades_por_variante_suma_items_de_la_misma_variante():
     items = [
-        SimpleNamespace(producto_id=1, cantidad=2),
-        SimpleNamespace(producto_id=2, cantidad=1),
-        SimpleNamespace(producto_id=1, cantidad=3),
+        SimpleNamespace(variante_id=1, cantidad=2),
+        SimpleNamespace(variante_id=2, cantidad=1),
+        SimpleNamespace(variante_id=1, cantidad=3),
     ]
 
-    assert cantidades_por_producto(items) == {1: 5, 2: 1}
+    assert cantidades_por_variante(items) == {1: 5, 2: 1}

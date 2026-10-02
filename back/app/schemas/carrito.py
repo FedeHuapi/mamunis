@@ -24,6 +24,8 @@ class ProductoEnItem(BaseModel):
 class CarritoItemResponse(BaseModel):
     id: int
     producto: ProductoEnItem
+    variante_id: int
+    talla: str
     cantidad: int
 
     model_config = {"from_attributes": True}
@@ -39,7 +41,7 @@ class CarritoResponse(BaseModel):
 
 
 class AgregarItemRequest(BaseModel):
-    producto_id: int
+    variante_id: int
     cantidad: int = Field(..., gt=0)
 
 

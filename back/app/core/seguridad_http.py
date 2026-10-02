@@ -1,6 +1,10 @@
+import logging
+
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 RUTAS_DE_DOCUMENTACION = ("/docs", "/redoc")
 
@@ -36,4 +40,6 @@ async def error_de_validacion(request: Request, exc: RequestValidationError) -> 
 
 
 async def error_inesperado(request: Request, exc: Exception) -> JSONResponse:
+    # Hacia afuera el mensaje es generico; el detalle queda en los logs.
+    logger.error("Error inesperado en %s %s", request.method, request.url.path, exc_info=exc)
     return JSONResponse(status_code=500, content={"detail": "Error interno del servidor"})

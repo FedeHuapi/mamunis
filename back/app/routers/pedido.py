@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -7,16 +8,18 @@ from app.core.auth import get_usuario_opcional, requerir_admin
 from app.core.database import get_db
 from app.models.carrito import Carrito
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
-from app.models.producto import Producto
+from app.models.producto import Variante
 from app.models.usuario import Usuario
 from app.schemas.pedido import CambiarEstadoRequest, PedidoCreate, PedidoResponse
 from app.services.pedido_service import (
     StockInsuficiente,
     TransicionInvalida,
     cambiar_estado,
-    cantidades_por_producto,
+    cantidades_por_variante,
     reservar_stock,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/pedidos", tags=["Pedidos"])
 
@@ -41,13 +44,16 @@ def crear_pedido(
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="El carrito esta vacio")
 
     try:
-        reservar_stock(db, cantidades_por_producto(carrito.items))
+        reservar_stock(db, cantidades_por_variante(carrito.items))
     except StockInsuficiente as error:
         db.rollback()
-        producto = db.get(Producto, error.producto_id)
+        variante = db.get(Variante, error.variante_id)
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=f"Stock insuficiente para '{producto.nombre}'. Disponible: {producto.stock}",
+            detail=(
+                f"Stock insuficiente para '{variante.producto.nombre}' talle {variante.talla}. "
+                f"Disponible: {variante.stock}"
+            ),
         )
 
     total = sum((item.producto.precio * item.cantidad for item in carrito.items), Decimal("0"))
@@ -65,7 +71,7 @@ def crear_pedido(
     for item in carrito.items:
         db.add(PedidoItem(
             pedido=pedido,
-            producto_id=item.producto_id,
+            variante_id=item.variante_id,
             cantidad=item.cantidad,
             precio_unitario=item.producto.precio,
         ))
@@ -73,6 +79,10 @@ def crear_pedido(
 
     db.commit()
     db.refresh(pedido)
+    logger.info(
+        "Pedido %s creado: total=%s items=%s usuario=%s",
+        pedido.id, pedido.total, len(pedido.items), usuario.id if usuario else "invitado",
+    )
     return pedido
 
 
@@ -83,7 +93,9 @@ def listar_pedidos(
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Pedido).options(selectinload(Pedido.items).selectinload(PedidoItem.producto))
+    query = db.query(Pedido).options(
+        selectinload(Pedido.items).selectinload(PedidoItem.variante).selectinload(Variante.producto)
+    )
     if estado is not None:
         query = query.filter(Pedido.estado == estado)
     return query.order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc()).offset(skip).limit(limit).all()
@@ -100,6 +112,7 @@ def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session =
     if not pedido:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido no encontrado")
 
+    estado_anterior = pedido.estado
     try:
         cambiar_estado(db, pedido, datos.estado)
     except TransicionInvalida as error:
@@ -107,4 +120,5 @@ def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session =
 
     db.commit()
     db.refresh(pedido)
+    logger.info("Pedido %s: %s -> %s", pedido.id, estado_anterior.value, pedido.estado.value)
     return pedido
