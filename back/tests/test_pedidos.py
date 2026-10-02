@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from sqlalchemy import event
 
 from app.models.pedido import EstadoPedido, Pedido
-from app.models.producto import Producto, Talla
+from app.models.producto import Producto, Variante
 
 DATOS_CONTACTO = {
     "nombre_contacto": "Federico",
@@ -16,8 +16,12 @@ DATOS_CONTACTO = {
 def _crear_carrito_con_item(client, producto, cantidad=2):
     carrito = client.post("/carrito/").json()
     session_id = carrito["session_id"]
-    client.post(f"/carrito/{session_id}/items", json={"producto_id": producto.id, "cantidad": cantidad})
+    client.post(f"/carrito/{session_id}/items", json={"variante_id": producto.variantes[0].id, "cantidad": cantidad})
     return session_id
+
+
+def _stock(client, producto):
+    return client.get(f"/productos/{producto.id}").json()["variantes"][0]["stock"]
 
 
 def test_checkout_completo(client, producto):
@@ -30,11 +34,39 @@ def test_checkout_completo(client, producto):
     assert pedido["estado"] == "pendiente"
     assert pedido["total"] == "10000.00"
 
-    producto_actualizado = client.get(f"/productos/{producto.id}").json()
-    assert producto_actualizado["stock"] == 3  # 5 - 2
+    assert _stock(client, producto) == 3  # 5 - 2
 
     carrito_vacio = client.get(f"/carrito/{session_id}").json()
     assert carrito_vacio["items"] == []
+
+
+def test_checkout_descuenta_solo_el_talle_comprado(client, db_session, producto, headers_admin):
+    otro_talle = Variante(producto_id=producto.id, talla="12", stock=4)
+    db_session.add(otro_talle)
+    db_session.commit()
+    session_id = client.post("/carrito/").json()["session_id"]
+    client.post(f"/carrito/{session_id}/items", json={"variante_id": otro_talle.id, "cantidad": 3})
+
+    pedido = client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO}).json()
+
+    assert [(i["producto"]["nombre"], i["talla"], i["cantidad"]) for i in pedido["items"]] == [("Remera Dino", "12", 3)]
+    stock = {v["talla"]: v["stock"] for v in client.get(f"/productos/{producto.id}").json()["variantes"]}
+    assert stock == {"10": 5, "12": 1}
+
+    _cambiar_estado(client, pedido["id"], "cancelado", headers_admin)
+    stock = {v["talla"]: v["stock"] for v in client.get(f"/productos/{producto.id}").json()["variantes"]}
+    assert stock == {"10": 5, "12": 4}
+
+
+def test_checkout_stock_insuficiente_dice_que_talle(client, producto, db_session):
+    session_id = _crear_carrito_con_item(client, producto, cantidad=5)
+    producto.variantes[0].stock = 1
+    db_session.commit()
+
+    respuesta = client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO})
+
+    assert respuesta.status_code == 422
+    assert respuesta.json()["detail"] == "Stock insuficiente para 'Remera Dino' talle 10. Disponible: 1"
 
 
 def test_checkout_carrito_vacio(client):
@@ -59,8 +91,7 @@ def test_checkout_stock_insuficiente(client, producto, db_session):
 
     # simula que otra persona compro el resto del stock entre que este carrito
     # se armo y el momento del checkout
-    producto.stock = 1
-    db_session.add(producto)
+    producto.variantes[0].stock = 1
     db_session.commit()
 
     respuesta = client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO})
@@ -85,7 +116,7 @@ def test_pedido_recorre_todo_el_flujo_hasta_entregado(client, producto, headers_
         assert respuesta.status_code == 200
         assert respuesta.json()["estado"] == estado
 
-    assert client.get(f"/productos/{producto.id}").json()["stock"] == 3  # avanzar no toca el stock
+    assert _stock(client, producto) == 3  # avanzar no toca el stock
 
 
 def test_cancelar_pedido_restaura_stock(client, producto, headers_admin):
@@ -95,7 +126,7 @@ def test_cancelar_pedido_restaura_stock(client, producto, headers_admin):
 
     assert respuesta.status_code == 200
     assert respuesta.json()["estado"] == "cancelado"
-    assert client.get(f"/productos/{producto.id}").json()["stock"] == 5  # vuelve al original
+    assert _stock(client, producto) == 5  # vuelve al original
 
 
 def test_cancelar_pedido_ya_cancelado(client, producto, headers_admin):
@@ -105,7 +136,7 @@ def test_cancelar_pedido_ya_cancelado(client, producto, headers_admin):
     respuesta = _cambiar_estado(client, pedido_id, "cancelado", headers_admin)
 
     assert respuesta.status_code == 409
-    assert client.get(f"/productos/{producto.id}").json()["stock"] == 5  # no se repone dos veces
+    assert _stock(client, producto) == 5  # no se repone dos veces
 
 
 def test_no_se_puede_cancelar_pedido_entregado(client, producto, db_session, headers_admin):
@@ -117,7 +148,7 @@ def test_no_se_puede_cancelar_pedido_entregado(client, producto, db_session, hea
     respuesta = _cambiar_estado(client, pedido_id, "cancelado", headers_admin)
 
     assert respuesta.status_code == 409
-    assert client.get(f"/productos/{producto.id}").json()["stock"] == 3  # no se "recupera" ropa ya entregada
+    assert _stock(client, producto) == 3  # no se "recupera" ropa ya entregada
 
 
 def test_estado_inexistente_devuelve_422(client, producto, headers_admin):
@@ -189,7 +220,7 @@ def test_listar_pedidos_no_tiene_problema_n_mas_1(client, db_session, categoria,
         return len(consultas)
 
     productos = [
-        Producto(nombre=f"Remera {i}", precio=1000, talla=Talla.T4, categoria_id=categoria.id, stock=50)
+        Producto(nombre=f"Remera {i}", precio=1000, categoria_id=categoria.id, variantes=[Variante(talla="10", stock=50)])
         for i in range(3)
     ]
     db_session.add_all(productos)
@@ -198,7 +229,7 @@ def test_listar_pedidos_no_tiene_problema_n_mas_1(client, db_session, categoria,
     def _pedido_con_tres_items():
         session_id = client.post("/carrito/").json()["session_id"]
         for p in productos:
-            client.post(f"/carrito/{session_id}/items", json={"producto_id": p.id, "cantidad": 1})
+            client.post(f"/carrito/{session_id}/items", json={"variante_id": p.variantes[0].id, "cantidad": 1})
         client.post("/pedidos/", json={"session_id": session_id, **DATOS_CONTACTO})
 
     for _ in range(2):
