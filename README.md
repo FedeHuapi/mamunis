@@ -7,12 +7,12 @@ Tienda online para un emprendimiento de ropa infantil llamado "Mamunis".
 
 ## Estado del proyecto
 
-En desarrollo activo, sin fecha de lanzamiento aún. El backend cubre catálogo, carrito y checkout (compra como invitado o con cuenta, pago coordinado manualmente por fuera del sitio). El frontend todavía no arrancó.
+En desarrollo activo, sin fecha de lanzamiento aún. El backend cubre catálogo, carrito y checkout (compra como invitado o con cuenta, pago coordinado manualmente por fuera del sitio). El frontend está en sus primeros pasos: por ahora muestra el catálogo.
 
 ## Stack
 
 - **Backend:** FastAPI + SQLAlchemy + PostgreSQL, migraciones con Alembic.
-- **Frontend:** a definir.
+- **Frontend:** React + TypeScript + Vite, estilos con Tailwind CSS.
 
 ## Estructura del repositorio
 
@@ -24,7 +24,12 @@ mamunis/
 │       ├── models/     tablas (SQLAlchemy)
 │       ├── schemas/    validación de entrada/salida (Pydantic)
 │       └── routers/    endpoints HTTP
-└── front/    interfaz web (todavía sin empezar)
+└── front/    interfaz web (React)
+    └── src/
+        ├── api/         conexión con el backend y tipos generados desde la API
+        ├── components/  piezas reutilizables
+        ├── pages/       una por pantalla
+        └── lib/         funciones de ayuda
 ```
 
 ## Cómo correr el backend en local
@@ -51,6 +56,26 @@ python -m scripts.crear_admin
 ```
 
 La API queda en `http://127.0.0.1:8000`. FastAPI genera documentación interactiva automática en `/docs` (Swagger) y `/redoc` — no hace falta mantenerla a mano, se actualiza sola con el código.
+
+## Cómo correr el frontend en local
+
+Requisitos: Node.js 24+ y el backend corriendo (ver arriba).
+
+```bash
+cd front
+npm install
+npm run dev
+```
+
+La tienda queda en `http://localhost:5173`.
+
+Los tipos de TypeScript de la API se generan a partir del backend. Después de cambiar un endpoint o un schema, con el backend corriendo:
+
+```bash
+npm run api:types
+```
+
+Antes de subir cambios: `npm run lint` y `npm run build`.
 
 ## Tests
 

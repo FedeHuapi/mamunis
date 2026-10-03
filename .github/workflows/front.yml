@@ -1,0 +1,34 @@
+name: Front
+
+on:
+  push:
+    branches: [main, back-dev, front-dev]
+  pull_request:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: front
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: front/package-lock.json
+
+      # npm ci instala exactamente las versiones de package-lock.json.
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Revisar el codigo con el linter
+        run: npm run lint
+
+      # Incluye la revision de tipos: si el front usa mal un dato de la API, falla aca.
+      - name: Compilar
+        run: npm run build
