@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/*
+  Identidad visual. Estos valores son provisorios: cuando llegue la paleta y la
+  tipografia de la marca, se cambian aca y se actualizan en todo el sitio.
+*/
+@theme {
+  --color-marca: #c2607a;
+  --color-marca-oscuro: #9c4560;
+  --color-marca-suave: #fbeef1;
+  --color-fondo: #fffdfb;
+  --color-texto: #2b2530;
+  --color-texto-suave: #6f6675;
+  --color-borde: #ece4e6;
+
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--font-sans);
+}
