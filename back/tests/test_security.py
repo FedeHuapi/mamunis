@@ -1,9 +1,13 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 
 from app.core.config import settings
-from app.core.security import ALGORITMO_JWT, crear_token_acceso, leer_usuario_id_del_token
+from app.core.security import (
+    ALGORITMO_JWT,
+    crear_token_acceso,
+    leer_usuario_id_del_token,
+)
 
 
 def test_token_valido_devuelve_el_usuario():
@@ -23,21 +27,21 @@ def test_token_con_contenido_modificado_es_rechazado():
 
 
 def test_token_firmado_con_otra_clave_es_rechazado():
-    vencimiento = datetime.now(timezone.utc) + timedelta(minutes=5)
+    vencimiento = datetime.now(UTC) + timedelta(minutes=5)
     token = jwt.encode({"sub": "7", "exp": vencimiento}, "una-clave-que-no-es-la-del-servidor-1234567890", algorithm=ALGORITMO_JWT)
 
     assert leer_usuario_id_del_token(token) is None
 
 
 def test_token_vencido_es_rechazado():
-    vencimiento = datetime.now(timezone.utc) - timedelta(minutes=1)
+    vencimiento = datetime.now(UTC) - timedelta(minutes=1)
     token = jwt.encode({"sub": "7", "exp": vencimiento}, settings.SECRET_KEY, algorithm=ALGORITMO_JWT)
 
     assert leer_usuario_id_del_token(token) is None
 
 
 def test_token_sin_firma_alg_none_es_rechazado():
-    vencimiento = datetime.now(timezone.utc) + timedelta(minutes=5)
+    vencimiento = datetime.now(UTC) + timedelta(minutes=5)
     token = jwt.encode({"sub": "7", "exp": vencimiento}, key=None, algorithm="none")
 
     assert leer_usuario_id_del_token(token) is None

@@ -14,7 +14,11 @@ from sqlalchemy.orm import Session
 
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
 from app.models.producto import Variante
-from app.services.pedido_service import StockInsuficiente, cambiar_estado, reservar_stock
+from app.services.pedido_service import (
+    StockInsuficiente,
+    cambiar_estado,
+    reservar_stock,
+)
 
 
 def _esperar_a_que_alguien_este_bloqueado(engine, timeout=5):

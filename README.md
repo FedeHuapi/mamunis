@@ -65,7 +65,14 @@ copy .env.test.example .env.test  # y completar con tus credenciales
 pytest
 ```
 
-Cada Pull Request corre esta misma suite automáticamente vía GitHub Actions (ver el badge arriba).
+El estilo y los errores comunes los revisa [ruff](https://docs.astral.sh/ruff/):
+
+```bash
+ruff check .         # revisa
+ruff check . --fix   # arregla lo que se puede arreglar solo
+```
+
+Cada Pull Request corre el linter y esta misma suite automáticamente vía GitHub Actions (ver el badge arriba).
 
 ## Notas para el deploy
 
