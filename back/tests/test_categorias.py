@@ -21,7 +21,7 @@ def test_listar_categorias_es_publico(client, headers_admin):
     respuesta = client.get("/categorias/")
 
     assert respuesta.status_code == 200
-    nombres = [c["nombre"] for c in respuesta.json()]
+    nombres = [c["nombre"] for c in respuesta.json()["items"]]
     assert nombres == ["Remeras", "Pantalones"]
 
 

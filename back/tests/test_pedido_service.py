@@ -3,7 +3,11 @@ from types import SimpleNamespace
 import pytest
 
 from app.models.pedido import EstadoPedido
-from app.services.pedido_service import TransicionInvalida, cantidades_por_variante, validar_transicion
+from app.services.pedido_service import (
+    TransicionInvalida,
+    cantidades_por_variante,
+    validar_transicion,
+)
 
 E = EstadoPedido
 

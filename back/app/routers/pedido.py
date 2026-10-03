@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.auth import get_usuario_opcional, requerir_admin
 from app.core.database import get_db
+from app.core.paginacion import Pagina, paginar
 from app.models.carrito import Carrito
 from app.models.pedido import EstadoPedido, Pedido, PedidoItem
 from app.models.producto import Variante
@@ -54,7 +55,7 @@ def crear_pedido(
                 f"Stock insuficiente para '{variante.producto.nombre}' talle {variante.talla}. "
                 f"Disponible: {variante.stock}"
             ),
-        )
+        ) from error
 
     total = sum((item.producto.precio * item.cantidad for item in carrito.items), Decimal("0"))
     pedido = Pedido(
@@ -86,7 +87,7 @@ def crear_pedido(
     return pedido
 
 
-@router.get("/", response_model=list[PedidoResponse], dependencies=[Depends(requerir_admin)])
+@router.get("/", response_model=Pagina[PedidoResponse], dependencies=[Depends(requerir_admin)])
 def listar_pedidos(
     estado: EstadoPedido | None = None,
     skip: int = Query(0, ge=0),
@@ -98,7 +99,7 @@ def listar_pedidos(
     )
     if estado is not None:
         query = query.filter(Pedido.estado == estado)
-    return query.order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc()).offset(skip).limit(limit).all()
+    return paginar(query.order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc()), skip, limit)
 
 
 @router.get("/{pedido_id}", response_model=PedidoResponse, dependencies=[Depends(requerir_admin)])
@@ -116,7 +117,7 @@ def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session =
     try:
         cambiar_estado(db, pedido, datos.estado)
     except TransicionInvalida as error:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
 
     db.commit()
     db.refresh(pedido)

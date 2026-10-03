@@ -65,7 +65,7 @@ def test_listar_productos_filtra_por_categoria(client, producto, db_session):
 
     respuesta = client.get(f"/productos/?categoria_id={producto.categoria_id}")
 
-    nombres = [p["nombre"] for p in respuesta.json()]
+    nombres = [p["nombre"] for p in respuesta.json()["items"]]
     assert nombres == ["Remera Dino"]
 
 

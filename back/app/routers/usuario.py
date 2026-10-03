@@ -3,16 +3,21 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session, selectinload
 
-
 from app.core.auth import get_usuario_actual
 from app.core.database import get_db
 from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
+from app.core.paginacion import Pagina, paginar
 from app.core.security import crear_token_acceso, hash_password, verify_password
 from app.models.pedido import Pedido, PedidoItem
 from app.models.producto import Variante
 from app.models.usuario import Usuario
 from app.schemas.pedido import PedidoResponse
-from app.schemas.usuario import TokenResponse, UsuarioCreate, UsuarioLogin, UsuarioResponse
+from app.schemas.usuario import (
+    TokenResponse,
+    UsuarioCreate,
+    UsuarioLogin,
+    UsuarioResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,22 +45,20 @@ def obtener_usuario_actual(usuario: Usuario = Depends(get_usuario_actual)):
     return usuario
 
 
-@router.get("/me/pedidos", response_model=list[PedidoResponse])
+@router.get("/me/pedidos", response_model=Pagina[PedidoResponse])
 def listar_mis_pedidos(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     usuario: Usuario = Depends(get_usuario_actual),
     db: Session = Depends(get_db),
 ):
-    return (
+    query = (
         db.query(Pedido)
         .options(selectinload(Pedido.items).selectinload(PedidoItem.variante).selectinload(Variante.producto))
         .filter(Pedido.usuario_id == usuario.id)
         .order_by(Pedido.fecha_creacion.desc(), Pedido.id.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
     )
+    return paginar(query, skip, limit)
 
 
 @router.post("/login", response_model=TokenResponse)

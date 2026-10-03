@@ -4,7 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.logs import configurar_logs
-from app.core.seguridad_http import crear_middleware_de_headers, error_de_validacion, error_inesperado
+from app.core.seguridad_http import (
+    crear_middleware_de_headers,
+    error_de_validacion,
+    error_inesperado,
+)
 from app.routers import carrito, categorias, pedido, productos, usuario
 
 

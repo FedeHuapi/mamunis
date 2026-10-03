@@ -6,12 +6,12 @@ RAIZ_BACK = Path(__file__).resolve().parent.parent
 load_dotenv(RAIZ_BACK / ".env.test", override=True)
 
 import pytest
-from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+from alembic import command
 from app.core.config import settings
 from app.core.database import Base, get_db
 from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
