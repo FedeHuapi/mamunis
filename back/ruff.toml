@@ -1,0 +1,24 @@
+# Configuracion del linter. Para revisar: ruff check .   Para arreglar lo automatico: ruff check . --fix
+target-version = "py311"
+# No se exige un largo maximo (E501 esta ignorada), pero los imports se cortan a este ancho.
+line-length = 120
+# Las migraciones las genera Alembic con su propio estilo.
+extend-exclude = ["alembic/versions", "venv"]
+
+[lint]
+select = [
+    "E",   # errores de estilo basicos
+    "F",   # errores reales: variables sin usar, imports que sobran, nombres que no existen
+    "I",   # orden de los imports
+    "B",   # patrones que suelen esconder bugs
+    "UP",  # sintaxis vieja que tiene reemplazo moderno
+]
+ignore = [
+    "B008",  # Depends(...) y Query(...) como valor por defecto: es la forma normal de FastAPI
+    "E501",  # largo de linea: por ahora no se exige
+    "UP042", # pasar los enums a StrEnum cambia como se convierten a texto: no vale el riesgo
+]
+
+[lint.per-file-ignores]
+# conftest carga .env.test antes de importar la app, a proposito.
+"tests/conftest.py" = ["E402"]

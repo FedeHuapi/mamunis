@@ -3,7 +3,6 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session, selectinload
 
-
 from app.core.auth import get_usuario_actual
 from app.core.database import get_db
 from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
@@ -13,7 +12,12 @@ from app.models.pedido import Pedido, PedidoItem
 from app.models.producto import Variante
 from app.models.usuario import Usuario
 from app.schemas.pedido import PedidoResponse
-from app.schemas.usuario import TokenResponse, UsuarioCreate, UsuarioLogin, UsuarioResponse
+from app.schemas.usuario import (
+    TokenResponse,
+    UsuarioCreate,
+    UsuarioLogin,
+    UsuarioResponse,
+)
 
 logger = logging.getLogger(__name__)
 

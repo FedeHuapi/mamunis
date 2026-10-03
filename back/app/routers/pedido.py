@@ -55,7 +55,7 @@ def crear_pedido(
                 f"Stock insuficiente para '{variante.producto.nombre}' talle {variante.talla}. "
                 f"Disponible: {variante.stock}"
             ),
-        )
+        ) from error
 
     total = sum((item.producto.precio * item.cantidad for item in carrito.items), Decimal("0"))
     pedido = Pedido(
@@ -117,7 +117,7 @@ def actualizar_estado(pedido_id: int, datos: CambiarEstadoRequest, db: Session =
     try:
         cambiar_estado(db, pedido, datos.estado)
     except TransicionInvalida as error:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error))
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
 
     db.commit()
     db.refresh(pedido)

@@ -39,6 +39,10 @@ jobs:
         working-directory: back
         run: pip install -r requirements-dev.txt
 
+      - name: Revisar el codigo con el linter
+        working-directory: back
+        run: ruff check .
+
       - name: Correr tests
         working-directory: back
         run: pytest -v

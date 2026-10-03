@@ -65,7 +65,7 @@ def _eliminar(objeto, db: Session) -> None:
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_EN_USO)
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_EN_USO) from None
 
 
 @router.get("/", response_model=Pagina[ProductoResponse])
@@ -143,7 +143,7 @@ def subir_imagen(
         producto.imagen = almacen.subir(contenido, f"producto-{producto.id}")
     except ErrorAlSubirImagen as error:
         logger.error("No se pudo subir la imagen del producto %s: %s", producto.id, error)
-        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo guardar la imagen")
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo guardar la imagen") from error
     db.commit()
     db.refresh(producto)
     return producto
@@ -163,7 +163,7 @@ def agregar_variante(producto_id: int, datos: VarianteCreate, db: Session = Depe
         db.commit()
     except IntegrityError:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El producto ya tiene ese talle")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El producto ya tiene ese talle") from None
     db.refresh(variante)
     return variante
 
