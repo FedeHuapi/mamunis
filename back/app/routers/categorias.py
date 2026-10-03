@@ -3,19 +3,20 @@ from sqlalchemy.orm import Session
 
 from app.core.auth import requerir_admin
 from app.core.database import get_db
+from app.core.paginacion import Pagina, paginar
 from app.models.categoria import Categoria
 from app.schemas.categoria import CategoriaCreate, CategoriaResponse, CategoriaUpdate
 
 router = APIRouter(prefix="/categorias", tags=["Categorías"])
 
 
-@router.get("/", response_model=list[CategoriaResponse])
+@router.get("/", response_model=Pagina[CategoriaResponse])
 def listar_categorias(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    return db.query(Categoria).offset(skip).limit(limit).all()
+    return paginar(db.query(Categoria).order_by(Categoria.id), skip, limit)
 
 
 @router.get("/{categoria_id}", response_model=CategoriaResponse)

@@ -172,7 +172,7 @@ def test_listar_pedidos_del_mas_nuevo_al_mas_viejo(client, producto, headers_adm
     respuesta = client.get("/pedidos/", headers=headers_admin)
 
     assert respuesta.status_code == 200
-    assert [p["id"] for p in respuesta.json()] == [segundo, primero]
+    assert [p["id"] for p in respuesta.json()["items"]] == [segundo, primero]
 
 
 def test_listar_pedidos_filtra_por_estado(client, producto, headers_admin):
@@ -182,7 +182,7 @@ def test_listar_pedidos_filtra_por_estado(client, producto, headers_admin):
 
     respuesta = client.get("/pedidos/?estado=pendiente", headers=headers_admin)
 
-    assert [p["id"] for p in respuesta.json()] == [pendiente]
+    assert [p["id"] for p in respuesta.json()["items"]] == [pendiente]
 
 
 def test_listar_pedidos_pagina(client, producto, headers_admin):
@@ -190,7 +190,7 @@ def test_listar_pedidos_pagina(client, producto, headers_admin):
 
     respuesta = client.get("/pedidos/?skip=1&limit=1", headers=headers_admin)
 
-    assert [p["id"] for p in respuesta.json()] == [ids[1]]
+    assert [p["id"] for p in respuesta.json()["items"]] == [ids[1]]
 
 
 def test_listar_pedidos_rechaza_limit_excesivo(client, headers_admin):

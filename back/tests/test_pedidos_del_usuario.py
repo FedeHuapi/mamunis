@@ -27,14 +27,14 @@ def test_compra_logueado_queda_en_mis_pedidos(client, producto, headers_cliente)
     respuesta = _mis_pedidos(client, headers_cliente)
 
     assert respuesta.status_code == 200
-    assert [p["id"] for p in respuesta.json()] == [pedido["id"]]
+    assert [p["id"] for p in respuesta.json()["items"]] == [pedido["id"]]
 
 
 def test_compra_como_invitado_no_queda_en_ninguna_cuenta(client, producto, headers_cliente):
     respuesta = _comprar(client, producto)
 
     assert respuesta.status_code == 201
-    assert _mis_pedidos(client, headers_cliente).json() == []
+    assert _mis_pedidos(client, headers_cliente).json() == {"total": 0, "items": []}
 
 
 def test_cada_cliente_ve_solo_sus_pedidos(client, db_session, producto, usuario_cliente, headers_cliente):
@@ -46,8 +46,8 @@ def test_cada_cliente_ve_solo_sus_pedidos(client, db_session, producto, usuario_
     mio = _comprar(client, producto, headers=headers_cliente).json()
     del_otro = _comprar(client, producto, headers=headers_otro).json()
 
-    assert [p["id"] for p in _mis_pedidos(client, headers_cliente).json()] == [mio["id"]]
-    assert [p["id"] for p in _mis_pedidos(client, headers_otro).json()] == [del_otro["id"]]
+    assert [p["id"] for p in _mis_pedidos(client, headers_cliente).json()["items"]] == [mio["id"]]
+    assert [p["id"] for p in _mis_pedidos(client, headers_otro).json()["items"]] == [del_otro["id"]]
 
 
 def test_pedidos_de_invitado_no_se_asocian_por_email(client, producto):
@@ -59,7 +59,7 @@ def test_pedidos_de_invitado_no_se_asocian_por_email(client, producto):
 
     respuesta = _mis_pedidos(client, {"Authorization": f"Bearer {token['access_token']}"})
 
-    assert respuesta.json() == []
+    assert respuesta.json() == {"total": 0, "items": []}
 
 
 def test_checkout_con_token_invalido_no_compra_nada(client, db_session, producto):

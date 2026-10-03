@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.auth import requerir_admin
 from app.core.database import get_db
+from app.core.paginacion import Pagina, paginar
 from app.models.categoria import Categoria
 from app.models.producto import Producto, Variante
 from app.schemas.producto import (
@@ -67,7 +68,7 @@ def _eliminar(objeto, db: Session) -> None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_EN_USO)
 
 
-@router.get("/", response_model=list[ProductoResponse])
+@router.get("/", response_model=Pagina[ProductoResponse])
 def listar_productos(
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
@@ -77,7 +78,7 @@ def listar_productos(
     query = db.query(Producto).options(joinedload(Producto.categoria), selectinload(Producto.variantes))
     if categoria_id is not None:
         query = query.filter(Producto.categoria_id == categoria_id)
-    return query.order_by(Producto.id).offset(skip).limit(limit).all()
+    return paginar(query.order_by(Producto.id), skip, limit)
 
 
 @router.get("/{producto_id}", response_model=ProductoResponse)
