@@ -75,7 +75,7 @@ Los tipos de TypeScript de la API se generan a partir del backend. Después de c
 npm run api:types
 ```
 
-Antes de subir cambios: `npm run lint` y `npm run build`.
+Antes de subir cambios: `npm run lint`, `npm test` y `npm run build`.
 
 ## Tests
 
