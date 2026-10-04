@@ -1,23 +1,44 @@
 @import "tailwindcss";
 
 /*
-  Identidad visual. Estos valores son provisorios: cuando llegue la paleta y la
-  tipografia de la marca, se cambian aca y se actualizan en todo el sitio.
+  Identidad visual, tomada del logo: el amarillo y el negro son los del dibujo.
+  Es una primera propuesta: cualquier cambio de color o tipografia se hace aca y
+  se aplica a todo el sitio.
+
+  Contraste (minimo recomendado para texto: 4.5):
+  texto sobre fondo 14.9 · texto-suave sobre fondo 6.0 · tinta sobre amarillo 12.8.
+  El amarillo sobre fondo claro da 1.4: sirve para decorar, nunca para texto.
 */
 @theme {
-  --color-marca: #c2607a;
-  --color-marca-oscuro: #9c4560;
-  --color-marca-suave: #fbeef1;
-  --color-fondo: #fffdfb;
-  --color-texto: #2b2530;
-  --color-texto-suave: #6f6675;
-  --color-borde: #ece4e6;
+  --color-amarillo: #fcd579;
+  --color-amarillo-suave: #fef3d6;
+  --color-tinta: #1c1514;
+  --color-fondo: #fffbf2;
+  --color-texto: #2a2320;
+  --color-texto-suave: #6b5f55;
+  --color-borde: #efe6d4;
 
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  /* Fredoka para titulos: redondeada y jugueton, como las letras del logo. */
+  --font-titulos: "Fredoka Variable", ui-rounded, system-ui, sans-serif;
+  /* Nunito para el resto: amable y muy legible en textos largos y en celular. */
+  --font-sans: "Nunito Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {
   background-color: var(--color-fondo);
   color: var(--color-texto);
   font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-titulos);
+  color: var(--color-tinta);
+}
+
+/* Contorno visible al navegar con teclado. */
+:focus-visible {
+  outline: 3px solid var(--color-tinta);
+  outline-offset: 2px;
 }
