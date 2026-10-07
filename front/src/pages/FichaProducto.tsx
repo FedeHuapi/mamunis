@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 
+import { useAgregarAlCarrito } from '../api/carrito'
 import { useProducto } from '../api/productos'
 import { SelectorTalle } from '../components/SelectorTalle'
 import { leerEnteroPositivo } from '../lib/catalogo'
@@ -19,6 +20,7 @@ export function FichaProducto() {
 function Ficha({ id }: { id: number }) {
   const { data: producto, isPending, isError } = useProducto(id)
   const [varianteId, setVarianteId] = useState<number>()
+  const agregar = useAgregarAlCarrito()
 
   if (isPending) return <p role="status">Cargando producto…</p>
   if (isError) return <p role="alert">No pudimos cargar el producto. Probá de nuevo en un rato.</p>
@@ -52,7 +54,14 @@ function Ficha({ id }: { id: number }) {
           {producto.descripcion && <p className="whitespace-pre-line text-lg">{producto.descripcion}</p>}
 
           {hayStock ? (
-            <SelectorTalle variantes={producto.variantes} seleccionada={varianteId} onSeleccionar={setVarianteId} />
+            <SelectorTalle
+              variantes={producto.variantes}
+              seleccionada={varianteId}
+              onSeleccionar={(id) => {
+                setVarianteId(id)
+                agregar.reset() // al cambiar de talle se borra el aviso del anterior
+              }}
+            />
           ) : (
             <p className="rounded-2xl bg-amarillo-suave p-4 font-semibold">Por ahora no hay stock de este producto.</p>
           )}
@@ -61,6 +70,36 @@ function Ficha({ id }: { id: number }) {
             <p className="font-semibold" aria-live="polite">
               {elegida.stock === 1 ? 'Queda 1 unidad' : `Quedan ${elegida.stock} unidades`} en talle {elegida.talla}.
             </p>
+          )}
+
+          {hayStock && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                className="w-full rounded-full border-2 border-tinta bg-tinta px-6 py-4 font-titulos text-xl font-semibold text-fondo transition hover:bg-amarillo hover:text-tinta disabled:cursor-not-allowed disabled:border-borde disabled:bg-borde disabled:text-texto-suave md:w-auto"
+                disabled={!elegida || agregar.isPending}
+                onClick={() => elegida && agregar.mutate({ varianteId: elegida.id, cantidad: 1 })}
+              >
+                {agregar.isPending ? 'Agregando…' : 'Agregar al carrito'}
+              </button>
+
+              <div aria-live="polite">
+                {!elegida && <p className="text-texto-suave">Elegí un talle para agregarlo.</p>}
+                {agregar.isSuccess && (
+                  <p className="font-semibold">
+                    Agregado al carrito.{' '}
+                    <Link to="/carrito" className="underline">
+                      Ver carrito
+                    </Link>
+                  </p>
+                )}
+                {agregar.isError && (
+                  <p role="alert" className="font-semibold">
+                    {agregar.error.message}
+                  </p>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>

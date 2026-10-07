@@ -1,8 +1,11 @@
 import { Link, Outlet } from 'react-router'
 
+import { cantidadDeUnidades, useCarrito } from '../api/carrito'
 import logo from '../assets/logo.png'
 
 export function Layout() {
+  const unidades = cantidadDeUnidades(useCarrito().data)
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b-2 border-tinta bg-fondo">
@@ -10,9 +13,18 @@ export function Layout() {
           <Link to="/" aria-label="Mamunis, ir al inicio">
             <img src={logo} alt="" className="h-16 w-auto md:h-20" />
           </Link>
-          <nav aria-label="Principal" className="font-titulos text-lg font-semibold text-tinta">
+          <nav aria-label="Principal" className="flex items-center gap-1 font-titulos text-lg font-semibold text-tinta">
             <Link to="/" className="rounded-full px-4 py-2 hover:bg-amarillo">
               Productos
+            </Link>
+            <Link to="/carrito" className="flex items-center gap-2 rounded-full px-4 py-2 hover:bg-amarillo">
+              Carrito
+              {unidades > 0 && (
+                <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-tinta px-2 text-sm text-fondo">
+                  {unidades}
+                  <span className="sr-only"> {unidades === 1 ? 'producto' : 'productos'}</span>
+                </span>
+              )}
             </Link>
           </nav>
         </div>
