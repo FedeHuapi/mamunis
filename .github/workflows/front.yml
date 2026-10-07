@@ -29,6 +29,9 @@ jobs:
       - name: Revisar el codigo con el linter
         run: npm run lint
 
+      - name: Correr tests
+        run: npm test
+
       # Incluye la revision de tipos: si el front usa mal un dato de la API, falla aca.
       - name: Compilar
         run: npm run build

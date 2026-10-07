@@ -3,6 +3,9 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from 'react-router'
 
+import '@fontsource-variable/fredoka'
+import '@fontsource-variable/nunito'
+
 import './index.css'
 import { rutas } from './rutas'
 

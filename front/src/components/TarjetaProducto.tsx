@@ -1,23 +1,38 @@
+import { Link } from 'react-router'
+
 import type { Producto } from '../api/client'
+import { ordenarPorTalla } from '../lib/catalogo'
 import { formatearPrecio } from '../lib/formato'
 
 export function TarjetaProducto({ producto }: { producto: Producto }) {
   const hayStock = producto.variantes.some((variante) => variante.stock > 0)
+  const tallas = ordenarPorTalla(producto.variantes).map((variante) => variante.talla)
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-borde bg-white">
-      <div className="aspect-square bg-marca-suave">
+    <article className="group relative h-full overflow-hidden rounded-3xl border-2 border-tinta bg-white transition hover:-translate-y-1 hover:shadow-[4px_4px_0_var(--color-tinta)]">
+      <div className="relative aspect-square bg-amarillo-suave">
         {producto.imagen ? (
           <img src={producto.imagen} alt={producto.nombre} loading="lazy" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-texto-suave">Sin foto</div>
         )}
+        {!hayStock && (
+          <span className="absolute left-3 top-3 rounded-full bg-tinta px-3 py-1 text-xs font-bold text-fondo">
+            Sin stock
+          </span>
+        )}
       </div>
       <div className="space-y-1 p-4">
-        <p className="text-xs uppercase tracking-wide text-texto-suave">{producto.categoria.nombre}</p>
-        <h2 className="font-bold">{producto.nombre}</h2>
-        <p className="text-lg font-extrabold text-marca-oscuro">{formatearPrecio(producto.precio)}</p>
-        {!hayStock && <p className="text-sm font-semibold text-texto-suave">Sin stock</p>}
+        <p className="text-xs font-bold uppercase tracking-wide text-texto-suave">{producto.categoria.nombre}</p>
+        <h2 className="text-lg font-semibold leading-tight">
+          {/* El link se estira sobre toda la tarjeta (after:inset-0): se puede tocar en cualquier parte,
+              pero para el lector de pantalla es un solo link con el nombre del producto. */}
+          <Link to={`/productos/${producto.id}`} className="after:absolute after:inset-0">
+            {producto.nombre}
+          </Link>
+        </h2>
+        <p className="font-titulos text-xl font-bold text-tinta">{formatearPrecio(producto.precio)}</p>
+        {tallas.length > 0 && <p className="text-sm text-texto-suave">Talles: {tallas.join(' · ')}</p>}
       </div>
     </article>
   )
