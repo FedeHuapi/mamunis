@@ -121,7 +121,13 @@ export function Carrito() {
             <span className="text-lg">Total</span>
             <span className="font-titulos text-3xl font-bold text-tinta">{formatearPrecio(carrito.total)}</span>
           </p>
-          <Link to="/" className="mt-6 inline-block font-semibold underline">
+          <Link
+            to="/checkout"
+            className="mt-6 block rounded-full border-2 border-tinta bg-tinta px-6 py-4 text-center font-titulos text-xl font-semibold text-fondo transition hover:bg-fondo hover:text-tinta"
+          >
+            Finalizar compra
+          </Link>
+          <Link to="/" className="mt-4 inline-block font-semibold underline">
             Seguir mirando
           </Link>
         </aside>

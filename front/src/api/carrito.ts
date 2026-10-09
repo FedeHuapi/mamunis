@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { api } from './client'
+import { mensajeDeError } from './errores'
 import type { components } from './schema'
 
 export type Carrito = components['schemas']['CarritoResponse']
@@ -13,7 +14,7 @@ export type ItemDeCarrito = components['schemas']['CarritoItemResponse']
   personales ni de pago), pero por eso no se pone en la URL ni se muestra en pantalla.
 */
 const CLAVE_SESION = 'mamunis.carrito'
-const CLAVE_CONSULTA = ['carrito']
+export const CLAVE_CONSULTA = ['carrito']
 
 // localStorage puede no estar disponible (modo privado estricto, almacenamiento bloqueado).
 function leerSesion(): string | null {
@@ -40,12 +41,6 @@ function borrarSesion() {
   }
 }
 
-/** Saca un mensaje para mostrar de un error de la API, o usa el generico. */
-function mensajeDeError(error: unknown, generico: string): string {
-  const detalle = (error as { detail?: unknown } | undefined)?.detail
-  return typeof detalle === 'string' ? detalle : generico
-}
-
 async function obtenerCarrito(): Promise<Carrito | null> {
   const sesion = leerSesion()
   if (!sesion) return null
@@ -67,7 +62,7 @@ async function crearSesion(): Promise<string> {
   return data.session_id
 }
 
-function sesionActual(): string {
+export function sesionActual(): string {
   const sesion = leerSesion()
   if (!sesion) throw new Error('No hay un carrito')
   return sesion
