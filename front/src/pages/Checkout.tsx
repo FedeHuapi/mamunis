@@ -3,68 +3,44 @@ import { Link, useNavigate } from 'react-router'
 
 import { useCarrito } from '../api/carrito'
 import { type DatosDeContacto, useCrearPedido } from '../api/pedidos'
+import { useUsuario } from '../api/usuarios'
+import { Campo, estiloBotonPrincipal, estiloCampo } from '../components/Campo'
 import { type ErroresDeContacto, validarContacto } from '../lib/checkout'
 import { formatearPrecio } from '../lib/formato'
+import { enfocarPrimerError } from '../lib/formularios'
 
 const CAMPOS: (keyof DatosDeContacto)[] = ['nombre', 'email', 'telefono', 'direccion']
-
-const estiloCampo =
-  'w-full rounded-2xl border-2 border-tinta bg-white px-4 py-3 text-lg aria-invalid:border-dashed focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-tinta'
-
-type PropsCampo = {
-  id: keyof DatosDeContacto
-  etiqueta: string
-  ayuda?: string
-  error?: string
-  children: (props: { id: string; 'aria-invalid': boolean; 'aria-describedby': string | undefined }) => React.ReactNode
-}
-
-function Campo({ id, etiqueta, ayuda, error, children }: PropsCampo) {
-  const descripcion = [ayuda && `${id}-ayuda`, error && `${id}-error`].filter(Boolean).join(' ') || undefined
-
-  return (
-    <div>
-      <label htmlFor={id} className="mb-1 block font-titulos text-lg font-semibold text-tinta">
-        {etiqueta}
-      </label>
-      {children({ id, 'aria-invalid': Boolean(error), 'aria-describedby': descripcion })}
-      {ayuda && (
-        <p id={`${id}-ayuda`} className="mt-1 text-sm text-texto-suave">
-          {ayuda}
-        </p>
-      )}
-      {error && (
-        <p id={`${id}-error`} className="mt-1 font-semibold">
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
 
 export function Checkout() {
   const navigate = useNavigate()
   const carrito = useCarrito()
   const crearPedido = useCrearPedido()
-  const [datos, setDatos] = useState<DatosDeContacto>({ nombre: '', email: '', telefono: '', direccion: '' })
+  const usuario = useUsuario().data
+  // Solo se guarda lo que la persona escribio. Mientras no toque el nombre o el email,
+  // se muestran los de su cuenta (si ingreso).
+  const [escrito, setEscrito] = useState<Partial<DatosDeContacto>>({})
   const [errores, setErrores] = useState<ErroresDeContacto>({})
+  const datos: DatosDeContacto = {
+    nombre: escrito.nombre ?? usuario?.nombre ?? '',
+    email: escrito.email ?? usuario?.email ?? '',
+    telefono: escrito.telefono ?? '',
+    direccion: escrito.direccion ?? '',
+  }
 
   function cambiar(campo: keyof DatosDeContacto, valor: string) {
-    setDatos((actuales) => ({ ...actuales, [campo]: valor }))
+    setEscrito((actuales) => ({ ...actuales, [campo]: valor }))
     // El aviso de un campo se va cuando la persona empieza a corregirlo.
     if (errores[campo]) setErrores((actuales) => ({ ...actuales, [campo]: undefined }))
   }
 
   function enviar(evento: FormEvent) {
     evento.preventDefault()
+    // Se fija lo que se esta mandando: si la sesion vence en el intento, el formulario no se vacia.
+    setEscrito(datos)
     const encontrados = validarContacto(datos)
     setErrores(encontrados)
 
-    const primeroConError = CAMPOS.find((campo) => encontrados[campo])
-    if (primeroConError) {
-      document.getElementById(primeroConError)?.focus()
-      return
-    }
+    if (enfocarPrimerError(CAMPOS, encontrados)) return
 
     crearPedido.mutate(datos, {
       // replace: con "atras" no se vuelve a un formulario de un pedido que ya se hizo.
@@ -99,6 +75,20 @@ export function Checkout() {
       <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
         {/* noValidate: los avisos los muestra la pagina, en castellano y al lado de cada campo. */}
         <form noValidate onSubmit={enviar} className="space-y-5">
+          {usuario ? (
+            <p className="rounded-2xl bg-amarillo-suave p-4">
+              Estás comprando con tu cuenta, <strong>{usuario.email}</strong>. El pedido va a quedar en “Mis pedidos”.
+            </p>
+          ) : (
+            <p className="rounded-2xl bg-amarillo-suave p-4">
+              Podés comprar sin cuenta. Si tenés una,{' '}
+              <Link to="/ingresar?volver=/checkout" className="font-semibold underline">
+                ingresá
+              </Link>{' '}
+              para que el pedido quede guardado en ella.
+            </p>
+          )}
+
           <Campo id="nombre" etiqueta="Nombre y apellido" error={errores.nombre}>
             {(props) => (
               <input
@@ -175,7 +165,7 @@ export function Checkout() {
           <button
             type="submit"
             disabled={crearPedido.isPending}
-            className="w-full rounded-full border-2 border-tinta bg-tinta px-6 py-4 font-titulos text-xl font-semibold text-fondo transition hover:bg-amarillo hover:text-tinta disabled:cursor-not-allowed disabled:border-borde disabled:bg-borde disabled:text-texto-suave md:w-auto"
+            className={estiloBotonPrincipal}
           >
             {crearPedido.isPending ? 'Enviando tu pedido…' : 'Confirmar pedido'}
           </button>
