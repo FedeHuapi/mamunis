@@ -157,3 +157,35 @@ it('con el carrito vacio no muestra el formulario', async () => {
   expect(await screen.findByRole('heading', { name: 'No hay nada para comprar todavía' })).toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Confirmar pedido' })).not.toBeInTheDocument()
 })
+
+it('con una sesion iniciada completa el nombre y el email de la cuenta', async () => {
+  localStorage.setItem('mamunis.sesion', 'token-de-prueba')
+  vi.mocked(api.GET).mockImplementation((async (ruta: string) =>
+    ruta === '/usuarios/me'
+      ? respuesta(200, { id: 5, nombre: 'Ana Pérez', email: 'ana@ejemplo.com', es_admin: false, fecha_registro: '' })
+      : respuesta(200, CARRITO)) as never)
+
+  renderizarEnRuta(<Checkout />)
+
+  await waitFor(() => expect(screen.getByLabelText('Nombre y apellido')).toHaveValue('Ana Pérez'))
+  expect(screen.getByLabelText('Email')).toHaveValue('ana@ejemplo.com')
+  expect(screen.getByText(/Estás comprando con tu cuenta/)).toBeInTheDocument()
+})
+
+it('si la sesion vencio al confirmar, la cierra, avisa y no pierde lo escrito', async () => {
+  localStorage.setItem('mamunis.sesion', 'token-vencido')
+  vi.mocked(api.GET).mockImplementation((async (ruta: string) =>
+    ruta === '/usuarios/me' ? respuesta(401) : respuesta(200, CARRITO)) as never)
+  vi.mocked(api.POST).mockResolvedValue(respuesta(401, undefined, { detail: 'No autenticado' }))
+  renderizarEnRuta(<Checkout />)
+  await screen.findByRole('heading', { name: 'Finalizar compra' })
+
+  await completar()
+  // Caso borde: el token vence justo entre que se cargo la pagina y se confirma.
+  localStorage.setItem('mamunis.sesion', 'token-vencido')
+  await confirmar()
+
+  expect(await screen.findByRole('alert')).toHaveTextContent('Tu sesión venció')
+  expect(localStorage.getItem('mamunis.sesion')).toBeNull()
+  expect(screen.getByLabelText('WhatsApp')).toHaveValue('11 2345-6789')
+})
