@@ -1,10 +1,12 @@
 import { Link, Outlet } from 'react-router'
 
 import { cantidadDeUnidades, useCarrito } from '../api/carrito'
+import { useUsuario } from '../api/usuarios'
 import logo from '../assets/logo.png'
 
 export function Layout() {
   const unidades = cantidadDeUnidades(useCarrito().data)
+  const usuario = useUsuario().data
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -26,6 +28,20 @@ export function Layout() {
                 </span>
               )}
             </Link>
+            {usuario?.es_admin && (
+              <Link to="/admin" className="rounded-full px-4 py-2 hover:bg-amarillo">
+                Administrar
+              </Link>
+            )}
+            {usuario ? (
+              <Link to="/mi-cuenta" className="rounded-full px-4 py-2 hover:bg-amarillo">
+                Mi cuenta
+              </Link>
+            ) : (
+              <Link to="/ingresar" className="rounded-full px-4 py-2 hover:bg-amarillo">
+                Ingresar
+              </Link>
+            )}
           </nav>
         </div>
       </header>
