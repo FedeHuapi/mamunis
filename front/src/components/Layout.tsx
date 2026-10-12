@@ -28,6 +28,11 @@ export function Layout() {
                 </span>
               )}
             </Link>
+            {usuario?.es_admin && (
+              <Link to="/admin" className="rounded-full px-4 py-2 hover:bg-amarillo">
+                Administrar
+              </Link>
+            )}
             {usuario ? (
               <Link to="/mi-cuenta" className="rounded-full px-4 py-2 hover:bg-amarillo">
                 Mi cuenta
