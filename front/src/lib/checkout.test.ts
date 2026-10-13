@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { validarContacto } from './checkout'
+import { numeroNacional, validarContacto } from './checkout'
 
 const VALIDOS = {
   nombre: 'Ana Pérez',
@@ -29,19 +29,45 @@ describe('validarContacto', () => {
     expect(validarContacto({ ...VALIDOS, email })).toHaveProperty('email')
   })
 
-  it.each(['1123456789', '+54 9 11 2345-6789', '(011) 4123-4567', '15 2345 6789'])(
+  it.each(['1123456789', '+54 9 11 2345-6789', '(011) 4123-4567', '011 15 2345 6789', '0351 15 234 5678'])(
     'acepta el telefono %j, escrito como la gente lo escribe',
     (telefono) => {
       expect(validarContacto({ ...VALIDOS, telefono })).not.toHaveProperty('telefono')
     },
   )
 
-  it.each(['1234567', 'no tengo', '----------'])('rechaza el telefono %j', (telefono) => {
-    expect(validarContacto({ ...VALIDOS, telefono })).toHaveProperty('telefono')
+  // Los mismos casos que back/tests/test_datos_de_contacto.py.
+  it.each(['123456789', '1234567890', '15 2345 6789', '2345 6789', '1111111111', 'no tengo', '11 2345 6789 0000'])(
+    'rechaza el telefono %j',
+    (telefono) => {
+      expect(validarContacto({ ...VALIDOS, telefono })).toHaveProperty('telefono')
+    },
+  )
+
+  it.each([
+    ['+54 9 11 2345-6789', '1123456789'],
+    ['011 15 2345 6789', '1123456789'],
+    ['0351 15 234 5678', '3512345678'],
+    ['02944 15 123456', '2944123456'],
+  ])('numeroNacional lleva %j a %j', (escrito, esperado) => {
+    expect(numeroNacional(escrito)).toBe(esperado)
+  })
+
+  it.each(['123456', 'asdf', 'Calle Falsa', '12 34'])('rechaza la direccion %j', (direccion) => {
+    expect(validarContacto({ ...VALIDOS, direccion })).toHaveProperty('direccion')
+  })
+
+  it.each(['Mitre 45', 'Los Álamos s/n', 'Ruta 40 km 2000 S/N, Bariloche'])('acepta la direccion %j', (direccion) => {
+    expect(validarContacto({ ...VALIDOS, direccion })).not.toHaveProperty('direccion')
+  })
+
+  it('rechaza un nombre sin letras', () => {
+    expect(validarContacto({ ...VALIDOS, nombre: '123' })).toHaveProperty('nombre')
   })
 
   it('respeta los maximos del backend', () => {
     expect(validarContacto({ ...VALIDOS, nombre: 'a'.repeat(151) })).toHaveProperty('nombre')
     expect(validarContacto({ ...VALIDOS, telefono: '1'.repeat(51) })).toHaveProperty('telefono')
+    expect(validarContacto({ ...VALIDOS, direccion: `Mitre 45 ${'a'.repeat(300)}` })).toHaveProperty('direccion')
   })
 })
