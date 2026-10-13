@@ -106,7 +106,7 @@ export function Checkout() {
           <Campo
             id="telefono"
             etiqueta="WhatsApp"
-            ayuda="Te vamos a escribir a este número para coordinar el pago y la entrega."
+            ayuda="Con característica, por ejemplo 11 2345 6789. Te vamos a escribir a este número para coordinar el pago y la entrega."
             error={errores.telefono}
           >
             {(props) => (
@@ -145,6 +145,7 @@ export function Checkout() {
               <textarea
                 {...props}
                 rows={3}
+                maxLength={300}
                 autoComplete="street-address"
                 value={datos.direccion}
                 onChange={(e) => cambiar('direccion', e.target.value)}
