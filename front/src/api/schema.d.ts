@@ -670,6 +670,8 @@ export interface components {
         VarianteUpdate: {
             /** Stock */
             stock: number;
+            /** Stock Anterior */
+            stock_anterior: number;
         };
     };
     responses: never;

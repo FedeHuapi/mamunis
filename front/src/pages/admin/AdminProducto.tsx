@@ -257,9 +257,11 @@ function SeccionFoto({ producto }: { producto: Producto }) {
 function FilaTalle({ productoId, variante }: { productoId: number; variante: Variante }) {
   const cambiarStock = useCambiarStock()
   const eliminar = useEliminarTalle()
-  // undefined = no se toco: se muestra el stock actual.
-  const [escrito, setEscrito] = useState<string>()
-  const texto = escrito ?? String(variante.stock)
+  // undefined = no se toco: se muestra el stock actual. Al empezar a escribir se anota el
+  // stock que se estaba viendo: la pantalla se actualiza sola y, si se tomara el valor al
+  // guardar, una venta que entro mientras tanto se pisaria igual.
+  const [edicion, setEdicion] = useState<{ texto: string; visto: number }>()
+  const texto = edicion?.texto ?? String(variante.stock)
   const stock = leerStock(texto)
   const ocupado = cambiarStock.isPending || eliminar.isPending
   const error = cambiarStock.error ?? eliminar.error
@@ -268,7 +270,11 @@ function FilaTalle({ productoId, variante }: { productoId: number; variante: Var
   function enviar(evento: FormEvent) {
     evento.preventDefault()
     if (stock === undefined) return
-    cambiarStock.mutate({ productoId, varianteId: variante.id, stock }, { onSuccess: () => setEscrito(undefined) })
+    cambiarStock.mutate(
+      { productoId, varianteId: variante.id, stock, stockAnterior: edicion?.visto ?? variante.stock },
+      // Si el stock cambio en el medio, la casilla vuelve a mostrar el valor real y el aviso dice cual es.
+      { onSettled: () => setEdicion(undefined) },
+    )
   }
 
   return (
@@ -283,7 +289,7 @@ function FilaTalle({ productoId, variante }: { productoId: number; variante: Var
           inputMode="numeric"
           aria-invalid={stock === undefined}
           value={texto}
-          onChange={(e) => setEscrito(e.target.value)}
+          onChange={(e) => setEdicion({ texto: e.target.value, visto: edicion?.visto ?? variante.stock })}
           className={`w-24 ${estiloCampoChico}`}
         />
         <span className="text-texto-suave">unidades</span>
