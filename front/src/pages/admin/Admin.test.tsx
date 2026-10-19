@@ -57,6 +57,15 @@ function apiDePrueba(usuario: typeof ADMIN | null = ADMIN) {
   }) as never)
 }
 
+/** Hace que la API devuelva el producto con otro stock en el talle 12, como despues de una venta. */
+function apiConStock(stock: number) {
+  const anterior = vi.mocked(api.GET).getMockImplementation()!
+  vi.mocked(api.GET).mockImplementation((async (ruta: string, ...resto: unknown[]) => {
+    if (ruta !== '/productos/{producto_id}') return (anterior as (...args: unknown[]) => unknown)(ruta, ...resto)
+    return respuesta(200, { ...PRODUCTO, variantes: [{ id: 71, talla: '12', stock }, PRODUCTO.variantes[1]] })
+  }) as never)
+}
+
 beforeEach(() => {
   localStorage.clear()
   localStorage.setItem('mamunis.sesion', 'token-de-prueba')
@@ -285,8 +294,34 @@ describe('Editar producto', () => {
 
     expect(api.PATCH).toHaveBeenCalledWith('/productos/{producto_id}/variantes/{variante_id}', {
       params: { path: { producto_id: 7, variante_id: 71 } },
-      body: { stock: 9 },
+      body: { stock: 9, stock_anterior: 4 },
     })
+  })
+
+  it('si hubo una venta mientras se editaba, avisa y muestra el stock real', async () => {
+    const aviso = 'El stock cambió mientras lo editabas: ahora hay 2. Revisalo y guardá de nuevo.'
+    vi.mocked(api.PATCH).mockResolvedValue(respuesta(409, undefined, { detail: aviso }))
+    renderizar()
+
+    const stock = await screen.findByLabelText('Talle 12')
+    await userEvent.clear(stock)
+    await userEvent.type(stock, '9')
+    // La pantalla se refresca en segundo plano (como al volver a la pestaña) y ya trae la venta: 4 pasa a 2.
+    apiConStock(2)
+    const pedidosDelProducto = () => vi.mocked(api.GET).mock.calls.filter(([ruta]) => ruta === '/productos/{producto_id}').length
+    const antes = pedidosDelProducto()
+    window.dispatchEvent(new Event('visibilitychange'))
+    await waitFor(() => expect(pedidosDelProducto()).toBeGreaterThan(antes))
+    expect(stock).toHaveValue('9') // lo escrito no se pierde con el refresco
+    await userEvent.click(within(stock.closest('li')!).getByRole('button', { name: 'Guardar stock' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(aviso)
+    // Se mando el 4 que se vio al empezar a escribir, no un valor refrescado despues.
+    expect(api.PATCH).toHaveBeenCalledWith('/productos/{producto_id}/variantes/{variante_id}', {
+      params: { path: { producto_id: 7, variante_id: 71 } },
+      body: { stock: 9, stock_anterior: 4 },
+    })
+    await waitFor(() => expect(screen.getByLabelText('Talle 12')).toHaveValue('2'))
   })
 
   it('solo ofrece agregar los talles que faltan', async () => {
