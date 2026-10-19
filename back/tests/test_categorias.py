@@ -29,3 +29,18 @@ def test_obtener_categoria_inexistente(client):
     respuesta = client.get("/categorias/999")
 
     assert respuesta.status_code == 404
+
+
+def test_no_se_puede_eliminar_una_categoria_con_productos(client, producto, headers_admin):
+    respuesta = client.delete(f"/categorias/{producto.categoria_id}", headers=headers_admin)
+
+    assert respuesta.status_code == 409
+    assert "1 producto" in respuesta.json()["detail"]
+    assert client.get(f"/productos/{producto.id}").status_code == 200
+
+
+def test_eliminar_una_categoria_vacia(client, categoria, headers_admin):
+    respuesta = client.delete(f"/categorias/{categoria.id}", headers=headers_admin)
+
+    assert respuesta.status_code == 204
+    assert client.get(f"/categorias/{categoria.id}").status_code == 404

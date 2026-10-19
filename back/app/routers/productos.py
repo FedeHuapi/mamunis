@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
@@ -176,11 +177,26 @@ def agregar_variante(producto_id: int, datos: VarianteCreate, db: Session = Depe
 def actualizar_stock_de_variante(
     producto_id: int, variante_id: int, datos: VarianteUpdate, db: Session = Depends(get_db)
 ):
-    variante = _obtener_variante(producto_id, variante_id, db)
-    variante.stock = datos.stock
+    # Como en las compras (services/pedido_service.py), la condicion va dentro del UPDATE:
+    # si se leyera el stock en Python y despues se escribiera, una venta podria colarse en el medio.
+    resultado = db.execute(
+        update(Variante)
+        .where(
+            Variante.id == variante_id,
+            Variante.producto_id == producto_id,
+            Variante.stock == datos.stock_anterior,
+        )
+        .values(stock=datos.stock)
+    )
+    if resultado.rowcount != 1:
+        db.rollback()
+        variante = _obtener_variante(producto_id, variante_id, db)  # 404 si no existe
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"El stock cambió mientras lo editabas: ahora hay {variante.stock}. Revisalo y guardá de nuevo.",
+        )
     db.commit()
-    db.refresh(variante)
-    return variante
+    return _obtener_variante(producto_id, variante_id, db)
 
 
 @router.delete(
