@@ -1,13 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.auth import requerir_admin
 from app.core.database import get_db
 from app.core.paginacion import Pagina, paginar
 from app.models.categoria import Categoria
+from app.models.producto import Producto
 from app.schemas.categoria import CategoriaCreate, CategoriaResponse, CategoriaUpdate
 
 router = APIRouter(prefix="/categorias", tags=["Categorías"])
+
+
+def _mensaje_categoria_con_productos(cantidad: int) -> str:
+    productos = "1 producto" if cantidad == 1 else f"{cantidad} productos"
+    return f"No se puede eliminar: tiene {productos}. Pasalos a otra categoría primero."
 
 
 @router.get("/", response_model=Pagina[CategoriaResponse])
@@ -61,5 +68,17 @@ def eliminar_categoria(categoria_id: int, db: Session = Depends(get_db)):
     categoria = db.query(Categoria).filter(Categoria.id == categoria_id).first()
     if not categoria:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoría no encontrada")
-    db.delete(categoria)
-    db.commit()
+
+    # Todo producto tiene que estar en una categoria: borrar una que tiene productos los
+    # dejaria huerfanos. Se avisa cuantos son, para que el admin los pase a otra primero.
+    cantidad = db.query(Producto).filter(Producto.categoria_id == categoria_id).count()
+    if cantidad:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_mensaje_categoria_con_productos(cantidad))
+
+    try:
+        db.delete(categoria)
+        db.commit()
+    except IntegrityError:
+        # Alguien cargo un producto en esta categoria justo entre la cuenta y el borrado.
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_mensaje_categoria_con_productos(1)) from None
