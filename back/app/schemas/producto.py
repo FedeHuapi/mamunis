@@ -23,6 +23,9 @@ class VarianteCreate(BaseModel):
 
 class VarianteUpdate(BaseModel):
     stock: int = Field(..., ge=0)
+    # El stock que el admin tenia en pantalla. Si cambio desde entonces (una venta, una
+    # cancelacion), no se guarda: se le avisa, en vez de pisar ese movimiento.
+    stock_anterior: int = Field(..., ge=0)
 
 
 class VarianteResponse(BaseModel):
