@@ -81,8 +81,8 @@ def test_listado_de_pedidos_del_admin_tiene_total(client, variante, headers_admi
         session_id = client.post("/carrito/").json()["session_id"]
         client.post(f"/carrito/{session_id}/items", json={"variante_id": variante.id, "cantidad": 1})
         client.post("/pedidos/", json={
-            "session_id": session_id, "nombre_contacto": "X", "email_contacto": "x@mamunis.com",
-            "telefono_contacto": "1", "direccion_envio": "X",
+            "session_id": session_id, "nombre_contacto": "Cliente", "email_contacto": "x@mamunis.com",
+            "telefono_contacto": "1122334455", "direccion_envio": "Calle Falsa 123",
         })
 
     datos = client.get("/pedidos/?limit=2", headers=headers_admin).json()
