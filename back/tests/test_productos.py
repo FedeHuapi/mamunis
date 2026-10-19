@@ -128,7 +128,7 @@ def test_agregar_talle_a_producto_inexistente(client, headers_admin):
 
 def test_actualizar_stock_de_un_talle(client, producto, variante, headers_admin):
     respuesta = client.patch(
-        f"/productos/{producto.id}/variantes/{variante.id}", json={"stock": 10}, headers=headers_admin
+        f"/productos/{producto.id}/variantes/{variante.id}", json={"stock": 10, "stock_anterior": 5}, headers=headers_admin
     )
 
     assert respuesta.status_code == 200
@@ -137,7 +137,7 @@ def test_actualizar_stock_de_un_talle(client, producto, variante, headers_admin)
 
 def test_actualizar_stock_rechaza_negativos(client, producto, variante, headers_admin):
     respuesta = client.patch(
-        f"/productos/{producto.id}/variantes/{variante.id}", json={"stock": -1}, headers=headers_admin
+        f"/productos/{producto.id}/variantes/{variante.id}", json={"stock": -1, "stock_anterior": 5}, headers=headers_admin
     )
 
     assert respuesta.status_code == 422
@@ -149,7 +149,7 @@ def test_no_se_puede_tocar_el_talle_de_otro_producto(client, db_session, product
     db_session.commit()
 
     respuesta = client.patch(
-        f"/productos/{otro.id}/variantes/{variante.id}", json={"stock": 99}, headers=headers_admin
+        f"/productos/{otro.id}/variantes/{variante.id}", json={"stock": 99, "stock_anterior": 5}, headers=headers_admin
     )
 
     assert respuesta.status_code == 404
