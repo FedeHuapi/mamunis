@@ -154,11 +154,12 @@ type TalleDeProducto = { productoId: number; varianteId: number }
 
 export function useCambiarStock() {
   return useCambio(
-    ({ productoId, varianteId, stock }: TalleDeProducto & { stock: number }): Promise<Variante> =>
+    ({ productoId, varianteId, stock, stockAnterior }: TalleDeProducto & { stock: number; stockAnterior: number }): Promise<Variante> =>
       exigir(
         api.PATCH('/productos/{producto_id}/variantes/{variante_id}', {
           params: { path: { producto_id: productoId, variante_id: varianteId } },
-          body: { stock },
+          // Con el stock que se vio, el backend detecta si hubo una venta en el medio y no la pisa.
+          body: { stock, stock_anterior: stockAnterior },
         }),
         'No se pudo guardar el stock.',
       ),
