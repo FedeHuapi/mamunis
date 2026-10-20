@@ -6,6 +6,7 @@ const SECCIONES = [
   { ruta: '/admin/pedidos', nombre: 'Pedidos' },
   { ruta: '/admin/productos', nombre: 'Productos' },
   { ruta: '/admin/categorias', nombre: 'Categorías' },
+  { ruta: '/admin/arrepentimientos', nombre: 'Arrepentimientos' },
 ]
 
 /** El marco del panel: el menu de secciones arriba y la seccion elegida abajo. */

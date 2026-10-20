@@ -319,6 +319,41 @@ export interface paths {
         patch: operations["actualizar_estado_pedidos__pedido_id__estado_patch"];
         trace?: never;
     };
+    "/arrepentimientos/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar Arrepentimientos */
+        get: operations["listar_arrepentimientos_arrepentimientos__get"];
+        put?: never;
+        /** Crear Arrepentimiento */
+        post: operations["crear_arrepentimiento_arrepentimientos__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/arrepentimientos/{arrepentimiento_id}/estado": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Cambiar Estado */
+        patch: operations["cambiar_estado_arrepentimientos__arrepentimiento_id__estado_patch"];
+        trace?: never;
+    };
     "/": {
         parameters: {
             query?: never;
@@ -352,10 +387,72 @@ export interface components {
             /** Cantidad */
             cantidad: number;
         };
+        /**
+         * ArrepentimientoCreado
+         * @description La respuesta publica: solo el codigo y la fecha. A proposito no dice si el numero de
+         *     pedido existe o si coincidio con el email, para que nadie lo use para averiguar pedidos.
+         */
+        ArrepentimientoCreado: {
+            /** Codigo */
+            codigo: string;
+            /**
+             * Fecha Creacion
+             * Format: date-time
+             */
+            fecha_creacion: string;
+        };
+        /**
+         * ArrepentimientoCreate
+         * @description Lo que completa la persona. La norma no deja pedir registro ni otro tramite previo:
+         *     por eso alcanza con nombre y email, y el numero de pedido es opcional.
+         */
+        ArrepentimientoCreate: {
+            /** Nombre */
+            nombre: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Telefono */
+            telefono?: string | null;
+            /** Numero Pedido */
+            numero_pedido?: number | null;
+            /** Motivo */
+            motivo?: string | null;
+        };
+        /** ArrepentimientoResponse */
+        ArrepentimientoResponse: {
+            /** Id */
+            id: number;
+            /** Codigo */
+            codigo: string;
+            /** Nombre */
+            nombre: string;
+            /** Email */
+            email: string;
+            /** Telefono */
+            telefono: string | null;
+            /** Numero Pedido */
+            numero_pedido: number | null;
+            /** Motivo */
+            motivo: string | null;
+            estado: components["schemas"]["EstadoArrepentimiento"];
+            /**
+             * Fecha Creacion
+             * Format: date-time
+             */
+            fecha_creacion: string;
+            pedido: components["schemas"]["PedidoDelArrepentimiento"] | null;
+        };
         /** Body_subir_imagen_productos__producto_id__imagen_post */
         Body_subir_imagen_productos__producto_id__imagen_post: {
             /** Archivo */
             archivo: string;
+        };
+        /** CambiarEstadoArrepentimiento */
+        CambiarEstadoArrepentimiento: {
+            estado: components["schemas"]["EstadoArrepentimiento"];
         };
         /** CambiarEstadoRequest */
         CambiarEstadoRequest: {
@@ -427,6 +524,11 @@ export interface components {
             descripcion?: string | null;
         };
         /**
+         * EstadoArrepentimiento
+         * @enum {string}
+         */
+        EstadoArrepentimiento: "recibida" | "en_proceso" | "resuelta";
+        /**
          * EstadoPedido
          * @enum {string}
          */
@@ -435,6 +537,13 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Pagina[ArrepentimientoResponse] */
+        Pagina_ArrepentimientoResponse_: {
+            /** Total */
+            total: number;
+            /** Items */
+            items: components["schemas"]["ArrepentimientoResponse"][];
         };
         /** Pagina[CategoriaResponse] */
         Pagina_CategoriaResponse_: {
@@ -475,6 +584,19 @@ export interface components {
             telefono_contacto: string;
             /** Direccion Envio */
             direccion_envio: string;
+        };
+        /** PedidoDelArrepentimiento */
+        PedidoDelArrepentimiento: {
+            /** Id */
+            id: number;
+            estado: components["schemas"]["EstadoPedido"];
+            /** Total */
+            total: string;
+            /**
+             * Fecha Creacion
+             * Format: date-time
+             */
+            fecha_creacion: string;
         };
         /** PedidoItemResponse */
         PedidoItemResponse: {
@@ -1528,6 +1650,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PedidoResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_arrepentimientos_arrepentimientos__get: {
+        parameters: {
+            query?: {
+                estado?: components["schemas"]["EstadoArrepentimiento"] | null;
+                skip?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pagina_ArrepentimientoResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    crear_arrepentimiento_arrepentimientos__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ArrepentimientoCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArrepentimientoCreado"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cambiar_estado_arrepentimientos__arrepentimiento_id__estado_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                arrepentimiento_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CambiarEstadoArrepentimiento"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArrepentimientoResponse"];
                 };
             };
             /** @description Validation Error */

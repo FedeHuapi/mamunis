@@ -10,8 +10,9 @@ import { keepPreviousData, type QueryKey, useMutation, useQuery, useQueryClient 
 import { api, type Categoria, type Producto, type Variante } from './client'
 import { mensajeDeError } from './errores'
 import type { Pedido } from './pedidos'
+import type { components } from './schema'
 import { borrarToken } from './token'
-import { CLAVE_PEDIDOS_ADMIN, CLAVE_USUARIO } from './usuarios'
+import { CLAVE_ARREPENTIMIENTOS_ADMIN, CLAVE_PEDIDOS_ADMIN, CLAVE_USUARIO } from './usuarios'
 
 export const PEDIDOS_POR_PAGINA = 10
 
@@ -206,5 +207,40 @@ export function useEliminarCategoria() {
         'No se pudo eliminar la categoría. Si tiene productos, primero pasalos a otra.',
       ),
     CLAVES_CATEGORIAS,
+  )
+}
+
+// --- Arrepentimientos ---
+
+export type SolicitudDeArrepentimiento = components['schemas']['ArrepentimientoResponse']
+type EstadoDeSolicitud = SolicitudDeArrepentimiento['estado']
+
+export const SOLICITUDES_POR_PAGINA = 10
+
+export function useArrepentimientos({ pagina, estado }: { pagina: number; estado?: EstadoDeSolicitud }) {
+  return useQuery({
+    queryKey: [CLAVE_ARREPENTIMIENTOS_ADMIN, { pagina, estado }],
+    queryFn: () =>
+      exigir(
+        api.GET('/arrepentimientos/', {
+          params: { query: { estado, skip: (pagina - 1) * SOLICITUDES_POR_PAGINA, limit: SOLICITUDES_POR_PAGINA } },
+        }),
+        'No se pudieron cargar las solicitudes.',
+      ),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useCambiarEstadoArrepentimiento() {
+  return useCambio(
+    ({ id, estado }: { id: number; estado: EstadoDeSolicitud }) =>
+      exigir(
+        api.PATCH('/arrepentimientos/{arrepentimiento_id}/estado', {
+          params: { path: { arrepentimiento_id: id } },
+          body: { estado },
+        }),
+        'No se pudo cambiar el estado de la solicitud.',
+      ),
+    [[CLAVE_ARREPENTIMIENTOS_ADMIN]],
   )
 }
