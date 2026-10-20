@@ -3,11 +3,13 @@ import { createBrowserRouter, Navigate } from 'react-router'
 import { Layout } from './components/Layout'
 import { RequiereAdmin } from './components/RequiereAdmin'
 import { RequiereSesion } from './components/RequiereSesion'
+import { AdminArrepentimientos } from './pages/admin/AdminArrepentimientos'
 import { AdminCategorias } from './pages/admin/AdminCategorias'
 import { AdminPedidos } from './pages/admin/AdminPedidos'
 import { AdminProducto } from './pages/admin/AdminProducto'
 import { AdminProductos } from './pages/admin/AdminProductos'
 import { PanelAdmin } from './pages/admin/PanelAdmin'
+import { Arrepentimiento } from './pages/Arrepentimiento'
 import { Carrito } from './pages/Carrito'
 import { Catalogo } from './pages/Catalogo'
 import { Checkout } from './pages/Checkout'
@@ -34,12 +36,13 @@ export const rutas = createBrowserRouter([
         path: '/mi-cuenta',
         element: <RequiereSesion>{(usuario) => <MiCuenta usuario={usuario} />}</RequiereSesion>,
       },
+      // Sin cuenta: la norma no permite pedir registro para arrepentirse.
+      { path: '/arrepentimiento', element: <Arrepentimiento /> },
       // Paginas que todavia no se armaron: los links del pie ya apuntan aca.
       { path: '/sobre-mamunis', element: <EnConstruccion titulo="Sobre Mamunis" /> },
       { path: '/envios-y-pagos', element: <EnConstruccion titulo="Envíos y pagos" /> },
       { path: '/cambios-y-devoluciones', element: <EnConstruccion titulo="Cambios y devoluciones" /> },
       { path: '/terminos-y-privacidad', element: <EnConstruccion titulo="Términos y privacidad" /> },
-      { path: '/arrepentimiento', element: <EnConstruccion titulo="Botón de arrepentimiento" /> },
       {
         path: '/admin',
         element: (
@@ -54,6 +57,7 @@ export const rutas = createBrowserRouter([
           { path: 'productos/nuevo', element: <AdminProducto /> },
           { path: 'productos/:id', element: <AdminProducto /> },
           { path: 'categorias', element: <AdminCategorias /> },
+          { path: 'arrepentimientos', element: <AdminArrepentimientos /> },
         ],
       },
       { path: '*', element: <NoEncontrada /> },
