@@ -119,9 +119,13 @@ export function Pie() {
                   Términos y privacidad
                 </Link>
               </li>
-              <li>
-                {/* Tiene que estar a la vista y ser facil de encontrar (Resolucion 424/2020). */}
-                <Link to="/arrepentimiento" className={`${estiloLink} font-bold`}>
+              <li className="pt-2">
+                {/* La Resolucion 424/2020 pide que este a la vista desde la pagina de inicio y en un
+                    lugar destacado "en cuanto a visibilidad y tamaño": por eso tiene forma de boton. */}
+                <Link
+                  to="/arrepentimiento"
+                  className="inline-block rounded-full bg-tinta px-4 py-2 font-titulos text-base font-semibold text-fondo shadow-boton transition hover:bg-amarillo hover:text-tinta"
+                >
                   Botón de arrepentimiento
                 </Link>
               </li>
