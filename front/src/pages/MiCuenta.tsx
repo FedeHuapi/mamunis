@@ -5,6 +5,7 @@ import type { Usuario } from '../api/client'
 import { PEDIDOS_POR_PAGINA, useMisPedidos, useSalir } from '../api/usuarios'
 import { Paginacion } from '../components/Paginacion'
 import { totalDePaginas } from '../lib/catalogo'
+import { estiloBotonSecundario, estiloSello, estiloTarjeta } from '../lib/estilos'
 import { formatearPrecio } from '../lib/formato'
 import { formatearFecha, nombreDeEstado } from '../lib/pedidos'
 
@@ -30,10 +31,10 @@ function MisPedidos() {
     <>
       <ul className="space-y-4">
         {data.items.map((pedido) => (
-          <li key={pedido.id} className="rounded-3xl border-2 border-tinta bg-white p-5">
+          <li key={pedido.id} className={estiloTarjeta}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="text-xl font-semibold">Pedido N.º {pedido.id}</h3>
-              <span className="rounded-full bg-amarillo px-3 py-1 text-sm font-bold text-tinta">
+              <span className={estiloSello}>
                 {nombreDeEstado(pedido.estado)}
               </span>
             </div>
@@ -45,7 +46,7 @@ function MisPedidos() {
                 </li>
               ))}
             </ul>
-            <p className="mt-3 font-titulos text-xl font-bold text-tinta">{formatearPrecio(pedido.total)}</p>
+            <p className="mt-3 font-titulos text-xl font-semibold text-tinta">{formatearPrecio(pedido.total)}</p>
           </li>
         ))}
       </ul>
@@ -67,14 +68,14 @@ export function MiCuenta({ usuario }: { usuario: Usuario }) {
     <section aria-labelledby="titulo-cuenta">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 id="titulo-cuenta" className="text-4xl font-bold">
+          <h1 id="titulo-cuenta" className="text-4xl font-semibold">
             Hola, {usuario.nombre}
           </h1>
           <p className="text-texto-suave">{usuario.email}</p>
         </div>
         <button
           type="button"
-          className="rounded-full border-2 border-tinta px-5 py-2 font-titulos font-semibold hover:bg-amarillo"
+          className={estiloBotonSecundario}
           onClick={() => {
             salir()
             navigate('/')
@@ -84,7 +85,7 @@ export function MiCuenta({ usuario }: { usuario: Usuario }) {
         </button>
       </div>
 
-      <h2 className="mb-4 text-2xl font-bold">Mis pedidos</h2>
+      <h2 className="mb-4 text-2xl font-semibold">Mis pedidos</h2>
       <MisPedidos />
     </section>
   )
