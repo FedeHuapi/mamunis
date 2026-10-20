@@ -18,6 +18,8 @@ ENDPOINTS_SOLO_ADMIN = [
     ("GET", "/pedidos/"),
     ("GET", "/pedidos/1"),
     ("PATCH", "/pedidos/1/estado"),
+    ("GET", "/arrepentimientos/"),
+    ("PATCH", "/arrepentimientos/1/estado"),
 ]
 
 # Endpoints de escritura que cualquiera puede usar a proposito (clientes e invitados).
@@ -31,6 +33,8 @@ ESCRITURA_PUBLICA = {
     ("POST", "/pedidos/"),
     ("POST", "/usuarios/"),
     ("POST", "/usuarios/login"),
+    # El boton de arrepentimiento: la ley no permite exigir cuenta para usarlo.
+    ("POST", "/arrepentimientos/"),
 }
 
 

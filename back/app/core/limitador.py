@@ -60,3 +60,8 @@ class LimitadorDeIntentos:
 QUINCE_MINUTOS = 15 * 60
 intentos_login_por_cuenta = LimitadorDeIntentos(max_intentos=5, ventana_segundos=QUINCE_MINUTOS)
 intentos_login_por_ip = LimitadorDeIntentos(max_intentos=20, ventana_segundos=QUINCE_MINUTOS)
+
+# El boton de arrepentimiento es publico. Aca cada solicitud cuenta como un "intento":
+# una persona necesita una o dos; mas que eso desde la misma IP es abuso.
+UNA_HORA = 60 * 60
+solicitudes_de_arrepentimiento_por_ip = LimitadorDeIntentos(max_intentos=5, ventana_segundos=UNA_HORA)
