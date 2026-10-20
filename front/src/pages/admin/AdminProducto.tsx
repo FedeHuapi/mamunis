@@ -214,14 +214,14 @@ function SeccionFoto({ producto }: { producto: Producto }) {
 
   return (
     <section aria-labelledby="titulo-foto" className={estiloTarjeta}>
-      <h2 id="titulo-foto" className="mb-3 text-2xl font-bold">
+      <h2 id="titulo-foto" className="mb-3 text-2xl font-semibold">
         Foto
       </h2>
       <div className="flex flex-wrap items-center gap-5">
         {producto.imagen ? (
           <img src={producto.imagen} alt={`Foto actual de ${producto.nombre}`} className="h-40 w-40 rounded-2xl object-cover" />
         ) : (
-          <div className="flex h-40 w-40 items-center justify-center rounded-2xl bg-amarillo-suave text-texto-suave">
+          <div className="flex h-40 w-40 items-center justify-center rounded-2xl bg-arena text-texto-suave">
             Sin foto
           </div>
         )}
@@ -278,7 +278,7 @@ function FilaTalle({ productoId, variante }: { productoId: number; variante: Var
   }
 
   return (
-    <li className="border-t-2 border-borde py-3 first:border-t-0">
+    <li className="border-t border-borde py-3 first:border-t-0">
       <form onSubmit={enviar} className="flex flex-wrap items-center gap-3">
         <label htmlFor={idCampo} className="w-20 font-titulos text-lg font-semibold">
           Talle {variante.talla}
@@ -370,7 +370,7 @@ function SeccionTalles({ producto }: { producto: Producto }) {
 
   return (
     <section aria-labelledby="titulo-talles" className={estiloTarjeta}>
-      <h2 id="titulo-talles" className="mb-1 text-2xl font-bold">
+      <h2 id="titulo-talles" className="mb-1 text-2xl font-semibold">
         Talles y stock
       </h2>
       <p className="mb-3 text-sm text-texto-suave">Cada talle se guarda por separado, con su propio botón.</p>
@@ -404,7 +404,7 @@ function EditarProducto({ id }: { id: number }) {
           ← Volver a productos
         </Link>
         <div className="mt-2 flex flex-wrap items-baseline justify-between gap-3">
-          <h1 className="text-4xl font-bold">{producto.nombre}</h1>
+          <h1 className="text-4xl font-semibold">{producto.nombre}</h1>
           <Link to={`/productos/${producto.id}`} className="font-semibold underline">
             Ver en la tienda
           </Link>
@@ -412,7 +412,7 @@ function EditarProducto({ id }: { id: number }) {
       </div>
 
       <section aria-labelledby="titulo-datos" className={estiloTarjeta}>
-        <h2 id="titulo-datos" className="mb-4 text-2xl font-bold">
+        <h2 id="titulo-datos" className="mb-4 text-2xl font-semibold">
           Datos
         </h2>
         <FormularioProducto producto={producto} />
@@ -422,7 +422,7 @@ function EditarProducto({ id }: { id: number }) {
       <SeccionTalles producto={producto} />
 
       <section aria-labelledby="titulo-eliminar" className={estiloTarjeta}>
-        <h2 id="titulo-eliminar" className="mb-1 text-2xl font-bold">
+        <h2 id="titulo-eliminar" className="mb-1 text-2xl font-semibold">
           Eliminar
         </h2>
         <p className="mb-3 text-sm text-texto-suave">
@@ -455,7 +455,7 @@ export function AdminProducto() {
         <Link to="/admin/productos" className="mb-2 inline-block font-semibold underline">
           ← Volver a productos
         </Link>
-        <h1 id="titulo-nuevo" className="mb-2 text-4xl font-bold">
+        <h1 id="titulo-nuevo" className="mb-2 text-4xl font-semibold">
           Nuevo producto
         </h1>
         <p className="mb-6 text-texto-suave">La foto se sube en el paso siguiente, una vez creado.</p>

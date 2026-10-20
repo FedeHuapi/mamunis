@@ -26,13 +26,13 @@ export function Catalogo() {
 
   return (
     <>
-      <section className="mb-10 rounded-3xl border-2 border-tinta bg-amarillo px-6 py-10 md:px-10">
-        <h1 className="text-4xl font-bold md:text-5xl">Ropa para jugar todo el día</h1>
-        <p className="mt-3 max-w-xl text-lg text-tinta">Prendas cómodas para chicos y chicas, en talles del 10 al 16.</p>
+      <section className="mb-12 rounded-[28px] bg-amarillo-suave px-6 py-12 md:px-12">
+        <h1 className="max-w-2xl text-4xl font-semibold leading-tight md:text-5xl">Ropa para jugar todo el día</h1>
+        <p className="mt-4 max-w-xl text-lg text-texto-suave">Prendas cómodas para chicos y chicas, en talles del 10 al 16.</p>
       </section>
 
       <section aria-labelledby="titulo-catalogo">
-        <h2 id="titulo-catalogo" className="mb-4 text-3xl font-bold">
+        <h2 id="titulo-catalogo" className="mb-5 text-3xl font-semibold">
           Productos
         </h2>
 

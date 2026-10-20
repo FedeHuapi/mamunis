@@ -1,3 +1,5 @@
+import { estiloBotonSecundario as estiloBoton } from '../lib/estilos'
+
 type Props = {
   pagina: number
   totalPaginas: number
@@ -5,8 +7,6 @@ type Props = {
   etiqueta?: string
 }
 
-const estiloBoton =
-  'rounded-full border-2 border-tinta px-4 py-2 font-titulos font-semibold hover:bg-amarillo disabled:cursor-not-allowed disabled:border-borde disabled:text-texto-suave disabled:hover:bg-transparent'
 
 export function Paginacion({ pagina, totalPaginas, onCambiar, etiqueta = 'Páginas del catálogo' }: Props) {
   if (totalPaginas <= 1) return null

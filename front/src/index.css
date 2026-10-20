@@ -1,24 +1,39 @@
 @import "tailwindcss";
 
 /*
-  Identidad visual, tomada del logo: el amarillo y el negro son los del dibujo.
-  Es una primera propuesta: cualquier cambio de color o tipografia se hace aca y
-  se aplica a todo el sitio.
+  Identidad visual, tomada del logo: el amarillo y el oscuro son los del dibujo, en una
+  version mas suave. Cualquier cambio de color, sombra o tipografia se hace aca y se
+  aplica a todo el sitio. Las piezas que se repiten (botones, campos, tarjetas) estan
+  en src/lib/estilos.ts.
 
   Contraste (minimo recomendado para texto: 4.5):
-  texto sobre fondo 14.9 · texto-suave sobre fondo 6.0 · tinta sobre amarillo 12.8.
+  texto sobre fondo 12.3 · texto-suave sobre fondo 5.7, sobre arena 5.2, sobre blanco 6.1 ·
+  tinta sobre amarillo 9.3 · fondo sobre tinta 12.3.
   El amarillo sobre fondo claro da 1.4: sirve para decorar, nunca para texto.
 */
 @theme {
+  /* Cacao: texto principal, botones principales y lo que esta seleccionado. */
+  --color-tinta: #3a2e2a;
+  --color-texto: #3a2e2a;
+  --color-texto-suave: #6e5f54;
+  /* El amarillo del logo, solo para acentos: sellos, contadores, el hover de los botones. */
   --color-amarillo: #fcd579;
-  --color-amarillo-suave: #fef3d6;
-  --color-tinta: #1c1514;
-  --color-fondo: #fffbf2;
-  --color-texto: #2a2320;
-  --color-texto-suave: #6b5f55;
-  --color-borde: #efe6d4;
+  /* Manteca: fondo de avisos y destacados. */
+  --color-amarillo-suave: #fdf1d3;
+  /* Crema: el fondo de la pagina. Arena: zonas (fotos, filtros, pie). */
+  --color-fondo: #fbf7f0;
+  --color-arena: #f3ebdd;
+  /* Lineas finas para separar. La fuerte es el borde de los campos de formulario: tiene
+     que distinguirse del fondo blanco (contraste 3.3; el minimo para controles es 3). */
+  --color-borde: #eadfcf;
+  --color-borde-fuerte: #9c8b7a;
 
-  /* Fredoka para titulos: redondeada y jugueton, como las letras del logo. */
+  /* Sombras muy leves y calidas, del color cacao. */
+  --shadow-tarjeta: 0 1px 2px rgb(58 46 42 / 0.06), 0 0 0 1px var(--color-borde);
+  --shadow-elevada: 0 2px 4px rgb(58 46 42 / 0.06), 0 14px 32px rgb(58 46 42 / 0.1);
+  --shadow-boton: 0 2px 6px rgb(58 46 42 / 0.18);
+
+  /* Fredoka para titulos y precios: redondeada como las letras del logo. */
   --font-titulos: "Fredoka Variable", ui-rounded, system-ui, sans-serif;
   /* Nunito para el resto: amable y muy legible en textos largos y en celular. */
   --font-sans: "Nunito Variable", ui-sans-serif, system-ui, sans-serif;

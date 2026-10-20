@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useIngresar, useUsuario } from '../api/usuarios'
 import { Campo, estiloBotonPrincipal, estiloCampo } from '../components/Campo'
 import { type DatosDeIngreso, rutaParaVolver, validarIngreso } from '../lib/cuenta'
+import { estiloAviso } from '../lib/estilos'
 import { enfocarPrimerError } from '../lib/formularios'
 
 const CAMPOS: (keyof DatosDeIngreso)[] = ['email', 'password']
@@ -35,7 +36,7 @@ export function Ingresar() {
 
   return (
     <section aria-labelledby="titulo-ingresar" className="mx-auto max-w-md">
-      <h1 id="titulo-ingresar" className="mb-6 text-4xl font-bold">
+      <h1 id="titulo-ingresar" className="mb-6 text-4xl font-semibold">
         Ingresar
       </h1>
 
@@ -68,7 +69,7 @@ export function Ingresar() {
 
         {/* Por ejemplo "Email o contraseña incorrectos" o el aviso de demasiados intentos. */}
         {ingresar.isError && (
-          <p role="alert" className="rounded-2xl border-2 border-dashed border-tinta bg-amarillo-suave p-4 font-semibold">
+          <p role="alert" className={estiloAviso}>
             {ingresar.error.message}
           </p>
         )}
