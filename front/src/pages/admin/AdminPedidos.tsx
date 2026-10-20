@@ -5,7 +5,7 @@ import type { Pedido } from '../../api/pedidos'
 import { BotonConConfirmacion } from '../../components/BotonConConfirmacion'
 import { Paginacion } from '../../components/Paginacion'
 import { leerEnteroPositivo, totalDePaginas } from '../../lib/catalogo'
-import { estiloAviso, estiloBotonLleno, estiloTarjeta } from '../../lib/estilos'
+import { estiloAviso, estiloBotonLleno, estiloChip as estiloFiltro, estiloSello, estiloTarjeta } from '../../lib/estilos'
 import { formatearPrecio } from '../../lib/formato'
 import {
   type Estado,
@@ -16,12 +16,6 @@ import {
   nombreDeEstadoEnPanel,
 } from '../../lib/pedidos'
 
-function estiloFiltro(activo: boolean) {
-  return `rounded-full border-2 border-tinta px-4 py-1.5 font-semibold transition ${
-    activo ? 'bg-tinta text-fondo' : 'bg-white hover:bg-amarillo'
-  }`
-}
-
 function TarjetaPedido({ pedido }: { pedido: Pedido }) {
   const cambiar = useCambiarEstado()
   const siguientes = estadosSiguientes(pedido.estado)
@@ -31,7 +25,7 @@ function TarjetaPedido({ pedido }: { pedido: Pedido }) {
     <li className={estiloTarjeta}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">Pedido N.º {pedido.id}</h2>
-        <span className="rounded-full bg-amarillo px-3 py-1 text-sm font-bold text-tinta">
+        <span className={estiloSello}>
           {nombreDeEstadoEnPanel(pedido.estado)}
         </span>
       </div>
@@ -66,12 +60,12 @@ function TarjetaPedido({ pedido }: { pedido: Pedido }) {
               </li>
             ))}
           </ul>
-          <p className="mt-2 font-titulos text-xl font-bold text-tinta">Total: {formatearPrecio(pedido.total)}</p>
+          <p className="mt-2 font-titulos text-xl font-semibold text-tinta">Total: {formatearPrecio(pedido.total)}</p>
         </div>
       </div>
 
       {siguientes.length > 0 && (
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t-2 border-borde pt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-borde pt-4">
           {siguientes.map((estado) =>
             estado === 'cancelado' ? (
               <BotonConConfirmacion
@@ -126,7 +120,7 @@ export function AdminPedidos() {
 
   return (
     <section aria-labelledby="titulo-pedidos">
-      <h1 id="titulo-pedidos" className="mb-4 text-4xl font-bold">
+      <h1 id="titulo-pedidos" className="mb-4 text-4xl font-semibold">
         Pedidos
       </h1>
 

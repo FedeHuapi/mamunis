@@ -25,7 +25,7 @@ export function AdminProductos() {
   return (
     <section aria-labelledby="titulo-productos">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-        <h1 id="titulo-productos" className="text-4xl font-bold">
+        <h1 id="titulo-productos" className="text-4xl font-semibold">
           Productos
         </h1>
         <Link to="/admin/productos/nuevo" className={estiloBotonLleno}>
@@ -50,7 +50,7 @@ export function AdminProductos() {
                   {producto.imagen ? (
                     <img src={producto.imagen} alt="" className="h-20 w-20 rounded-2xl object-cover" />
                   ) : (
-                    <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-amarillo-suave text-center text-xs text-texto-suave">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-arena text-center text-xs text-texto-suave">
                       Sin foto
                     </div>
                   )}

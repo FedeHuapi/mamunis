@@ -11,6 +11,7 @@ import { PanelAdmin } from './pages/admin/PanelAdmin'
 import { Carrito } from './pages/Carrito'
 import { Catalogo } from './pages/Catalogo'
 import { Checkout } from './pages/Checkout'
+import { EnConstruccion } from './pages/EnConstruccion'
 import { FichaProducto } from './pages/FichaProducto'
 import { Ingresar } from './pages/Ingresar'
 import { MiCuenta } from './pages/MiCuenta'
@@ -33,6 +34,12 @@ export const rutas = createBrowserRouter([
         path: '/mi-cuenta',
         element: <RequiereSesion>{(usuario) => <MiCuenta usuario={usuario} />}</RequiereSesion>,
       },
+      // Paginas que todavia no se armaron: los links del pie ya apuntan aca.
+      { path: '/sobre-mamunis', element: <EnConstruccion titulo="Sobre Mamunis" /> },
+      { path: '/envios-y-pagos', element: <EnConstruccion titulo="Envíos y pagos" /> },
+      { path: '/cambios-y-devoluciones', element: <EnConstruccion titulo="Cambios y devoluciones" /> },
+      { path: '/terminos-y-privacidad', element: <EnConstruccion titulo="Términos y privacidad" /> },
+      { path: '/arrepentimiento', element: <EnConstruccion titulo="Botón de arrepentimiento" /> },
       {
         path: '/admin',
         element: (

@@ -35,7 +35,7 @@ export function BotonConConfirmacion({ etiqueta, pregunta, confirmar, onConfirma
   }
 
   return (
-    <div role="group" aria-label={pregunta} className="flex flex-wrap items-center gap-2 rounded-2xl bg-amarillo-suave p-3">
+    <div role="group" aria-label={pregunta} className="flex flex-wrap items-center gap-2 rounded-2xl bg-amarillo-suave p-3 shadow-tarjeta">
       <p className="font-semibold">{pregunta}</p>
       <button
         type="button"

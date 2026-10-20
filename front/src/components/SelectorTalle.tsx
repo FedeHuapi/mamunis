@@ -22,12 +22,12 @@ export function SelectorTalle({ variantes, seleccionada, onSeleccionar }: Props)
             // forma de boton: asi funciona con teclado y lector de pantalla sin codigo extra.
             <label
               key={variante.id}
-              className={`flex h-12 min-w-12 items-center justify-center rounded-full border-2 px-3 font-titulos text-lg font-semibold has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-tinta ${
+              className={`flex h-12 min-w-12 items-center justify-center rounded-full border px-3 font-titulos text-lg font-semibold has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-tinta ${
                 sinStock
                   ? 'cursor-not-allowed border-borde text-texto-suave line-through'
                   : activa
-                    ? 'cursor-pointer border-tinta bg-tinta text-fondo'
-                    : 'cursor-pointer border-tinta bg-white hover:bg-amarillo'
+                    ? 'cursor-pointer border-tinta bg-tinta text-fondo shadow-boton'
+                    : 'cursor-pointer border-borde-fuerte bg-white hover:bg-arena'
               }`}
             >
               <input
