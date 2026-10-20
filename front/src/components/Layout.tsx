@@ -3,6 +3,7 @@ import { Link, Outlet } from 'react-router'
 import { cantidadDeUnidades, useCarrito } from '../api/carrito'
 import { useUsuario } from '../api/usuarios'
 import logo from '../assets/logo.png'
+import { Pie } from './Pie'
 
 export function Layout() {
   const unidades = cantidadDeUnidades(useCarrito().data)
@@ -50,10 +51,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-borde bg-arena py-8 text-center text-sm text-tinta">
-        <p className="font-titulos text-lg">Mamunis</p>
-        <p className="text-texto-suave">Ropa infantil</p>
-      </footer>
+      <Pie />
     </div>
   )
 }
