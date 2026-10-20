@@ -9,7 +9,7 @@ from app.core.seguridad_http import (
     error_de_validacion,
     error_inesperado,
 )
-from app.routers import carrito, categorias, pedido, productos, usuario
+from app.routers import arrepentimiento, carrito, categorias, pedido, productos, usuario
 
 
 def crear_app(entorno: str = settings.ENTORNO) -> FastAPI:
@@ -42,6 +42,7 @@ def crear_app(entorno: str = settings.ENTORNO) -> FastAPI:
     app.include_router(carrito.router)
     app.include_router(usuario.router)
     app.include_router(pedido.router)
+    app.include_router(arrepentimiento.router)
 
     @app.get("/")
     def root():
