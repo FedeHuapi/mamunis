@@ -14,7 +14,11 @@ from sqlalchemy.orm import sessionmaker
 from alembic import command
 from app.core.config import settings
 from app.core.database import Base, get_db
-from app.core.limitador import intentos_login_por_cuenta, intentos_login_por_ip
+from app.core.limitador import (
+    intentos_login_por_cuenta,
+    intentos_login_por_ip,
+    solicitudes_de_arrepentimiento_por_ip,
+)
 from app.core.security import crear_token_acceso, hash_password
 from app.models.categoria import Categoria
 from app.models.producto import Producto, Variante
@@ -49,6 +53,7 @@ def alembic_cfg():
 def _reiniciar_limitadores():
     intentos_login_por_cuenta.reiniciar_todo()
     intentos_login_por_ip.reiniciar_todo()
+    solicitudes_de_arrepentimiento_por_ip.reiniciar_todo()
 
 
 @pytest.fixture(autouse=True)
