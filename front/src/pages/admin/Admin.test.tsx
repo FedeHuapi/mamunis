@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '../../api/client'
 import { RequiereAdmin } from '../../components/RequiereAdmin'
 import { renderizarEnRuta } from '../../test/render'
+import { AdminArrepentimientos } from './AdminArrepentimientos'
 import { AdminCategorias } from './AdminCategorias'
 import { AdminPedidos } from './AdminPedidos'
 import { AdminProducto } from './AdminProducto'
@@ -42,6 +43,33 @@ const PEDIDO = {
   items: [{ id: 1, talla: '12', cantidad: 2, precio_unitario: '15000.00', producto: { id: 7, nombre: 'Remera Dino', imagen: null } }],
 }
 
+const SOLICITUDES = [
+  {
+    id: 2,
+    codigo: 'ARR-BBBBBBBB',
+    nombre: 'Beto Gómez',
+    email: 'beto@ejemplo.com',
+    telefono: null,
+    numero_pedido: 999,
+    motivo: null,
+    estado: 'recibida',
+    fecha_creacion: '2026-10-20T12:00:00Z',
+    pedido: null,
+  },
+  {
+    id: 1,
+    codigo: 'ARR-AAAAAAAA',
+    nombre: 'Ana Pérez',
+    email: 'ana@ejemplo.com',
+    telefono: '11 2345 6789',
+    numero_pedido: 41,
+    motivo: 'No me quedó',
+    estado: 'en_proceso',
+    fecha_creacion: '2026-10-19T12:00:00Z',
+    pedido: { id: 41, estado: 'entregado', total: '30000.00', fecha_creacion: '2026-10-15T12:00:00Z' },
+  },
+]
+
 const respuesta = (status: number, data?: unknown, error?: unknown) =>
   ({ data, error, response: { status, ok: status < 400 } }) as never
 
@@ -53,6 +81,7 @@ function apiDePrueba(usuario: typeof ADMIN | null = ADMIN) {
     if (ruta === '/productos/') return respuesta(200, { total: 1, items: [PRODUCTO] })
     if (ruta === '/productos/{producto_id}') return respuesta(200, PRODUCTO)
     if (ruta === '/pedidos/') return respuesta(200, { total: 1, items: [PEDIDO] })
+    if (ruta === '/arrepentimientos/') return respuesta(200, { total: 2, items: SOLICITUDES })
     return respuesta(404)
   }) as never)
 }
@@ -445,5 +474,34 @@ describe('Categorias', () => {
     await userEvent.click(fila.getByRole('button', { name: 'Sí, eliminar' }))
 
     expect(api.DELETE).toHaveBeenCalledWith('/categorias/{categoria_id}', { params: { path: { categoria_id: 1 } } })
+  })
+})
+
+describe('Arrepentimientos', () => {
+  const renderizar = () =>
+    renderizarEnRuta(<AdminArrepentimientos />, { ruta: '/admin/arrepentimientos', url: '/admin/arrepentimientos' })
+
+  it('muestra cada solicitud con su pedido, o avisa si no se pudo vincular', async () => {
+    renderizar()
+
+    const vinculada = within((await screen.findByRole('heading', { name: 'ARR-AAAAAAAA' })).closest('li')!)
+    expect(vinculada.getByText(/Pedido N.º 41/)).toBeInTheDocument()
+    expect(vinculada.getByText('No me quedó')).toBeInTheDocument()
+
+    const sinVincular = within(screen.getByRole('heading', { name: 'ARR-BBBBBBBB' }).closest('li')!)
+    expect(sinVincular.getByText(/Escribió el pedido N.º 999, pero no coincide/)).toBeInTheDocument()
+  })
+
+  it('cambia el estado de una solicitud', async () => {
+    vi.mocked(api.PATCH).mockResolvedValue(respuesta(200, { ...SOLICITUDES[0], estado: 'resuelta' }))
+    renderizar()
+
+    const tarjeta = within((await screen.findByRole('heading', { name: 'ARR-BBBBBBBB' })).closest('li')!)
+    await userEvent.click(tarjeta.getByRole('button', { name: 'Marcar como resuelta' }))
+
+    expect(api.PATCH).toHaveBeenCalledWith('/arrepentimientos/{arrepentimiento_id}/estado', {
+      params: { path: { arrepentimiento_id: 2 } },
+      body: { estado: 'resuelta' },
+    })
   })
 })

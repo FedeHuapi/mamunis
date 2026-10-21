@@ -147,18 +147,18 @@ export function AdminCategorias() {
 
   return (
     <section aria-labelledby="titulo-categorias">
-      <h1 id="titulo-categorias" className="mb-6 text-4xl font-bold">
+      <h1 id="titulo-categorias" className="mb-6 text-4xl font-semibold">
         Categorías
       </h1>
 
-      <section aria-labelledby="titulo-nueva-categoria" className={`mb-8 ${estiloTarjeta} bg-amarillo-suave`}>
-        <h2 id="titulo-nueva-categoria" className="mb-3 text-2xl font-bold">
+      <section aria-labelledby="titulo-nueva-categoria" className="mb-8 rounded-3xl bg-amarillo-suave p-5">
+        <h2 id="titulo-nueva-categoria" className="mb-3 text-2xl font-semibold">
           Nueva categoría
         </h2>
         <FormularioCategoria />
       </section>
 
-      <h2 className="mb-4 text-2xl font-bold">Categorías cargadas</h2>
+      <h2 className="mb-4 text-2xl font-semibold">Categorías cargadas</h2>
       {isPending && <p role="status">Cargando categorías…</p>}
       {isError && <p role="alert">No pudimos cargar las categorías. Probá de nuevo en un rato.</p>}
       {categorias?.length === 0 && <p>Todavía no hay categorías.</p>}

@@ -1,15 +1,10 @@
 import type { Categoria } from '../api/client'
+import { estiloChip as estiloOpcion } from '../lib/estilos'
 
 type Props = {
   categorias: Categoria[]
   seleccionada?: number
   onCambiar: (categoriaId?: number) => void
-}
-
-function estiloOpcion(activa: boolean) {
-  return `rounded-full border-2 border-tinta px-4 py-1.5 font-semibold transition ${
-    activa ? 'bg-tinta text-fondo' : 'bg-white hover:bg-amarillo'
-  }`
 }
 
 export function FiltroCategorias({ categorias, seleccionada, onCambiar }: Props) {

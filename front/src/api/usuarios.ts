@@ -8,6 +8,8 @@ export const CLAVE_USUARIO = ['usuario']
 const CLAVE_MIS_PEDIDOS = 'mis-pedidos'
 // Los pedidos de todos los clientes, que solo ve el panel de administracion (api/admin.ts).
 export const CLAVE_PEDIDOS_ADMIN = 'pedidos-admin'
+// Las solicitudes de arrepentimiento: tambien tienen datos personales de clientes.
+export const CLAVE_ARREPENTIMIENTOS_ADMIN = 'arrepentimientos-admin'
 export const PEDIDOS_POR_PAGINA = 10
 
 type Credenciales = { email: string; password: string }
@@ -73,6 +75,7 @@ export function useSalir() {
     // Lo que se habia cargado de la cuenta no tiene que quedar en la memoria de la pagina.
     queryClient.removeQueries({ queryKey: [CLAVE_MIS_PEDIDOS] })
     queryClient.removeQueries({ queryKey: [CLAVE_PEDIDOS_ADMIN] })
+    queryClient.removeQueries({ queryKey: [CLAVE_ARREPENTIMIENTOS_ADMIN] })
   }
 }
 

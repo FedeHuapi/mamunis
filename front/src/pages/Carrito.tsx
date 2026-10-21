@@ -2,9 +2,10 @@ import { Link } from 'react-router'
 
 import { type ItemDeCarrito, useCambiarCantidad, useCarrito, useQuitarDelCarrito } from '../api/carrito'
 import { formatearPrecio } from '../lib/formato'
+import { estiloBotonEnlace, estiloBotonRedondo } from '../lib/estilos'
 
 const estiloPaso =
-  'flex h-10 w-10 items-center justify-center rounded-full border-2 border-tinta font-titulos text-xl font-semibold hover:bg-amarillo disabled:cursor-not-allowed disabled:border-borde disabled:text-texto-suave disabled:hover:bg-transparent'
+  estiloBotonRedondo
 
 function Item({ item }: { item: ItemDeCarrito }) {
   const cambiar = useCambiarCantidad()
@@ -13,8 +14,8 @@ function Item({ item }: { item: ItemDeCarrito }) {
   const nombre = `${item.producto.nombre}, talle ${item.talla}`
 
   return (
-    <li className="flex gap-4 rounded-3xl border-2 border-tinta bg-white p-4">
-      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-amarillo-suave">
+    <li className="flex gap-4 rounded-3xl bg-white p-4 shadow-tarjeta">
+      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-arena">
         {item.producto.imagen && <img src={item.producto.imagen} alt="" className="h-full w-full object-cover" />}
       </div>
 
@@ -28,7 +29,7 @@ function Item({ item }: { item: ItemDeCarrito }) {
             </h2>
             <p className="text-texto-suave">Talle {item.talla}</p>
           </div>
-          <p className="font-titulos text-lg font-bold text-tinta">
+          <p className="font-titulos text-lg font-medium text-tinta">
             {formatearPrecio(String(Number(item.producto.precio) * item.cantidad))}
           </p>
         </div>
@@ -91,10 +92,10 @@ export function Carrito() {
   if (!carrito || carrito.items.length === 0) {
     return (
       <section className="py-12 text-center">
-        <h1 className="text-4xl font-bold">Tu carrito está vacío</h1>
+        <h1 className="text-4xl font-semibold">Tu carrito está vacío</h1>
         <Link
           to="/"
-          className="mt-6 inline-block rounded-full border-2 border-tinta bg-amarillo px-6 py-3 font-titulos text-lg font-semibold hover:bg-tinta hover:text-fondo"
+          className={`mt-6 ${estiloBotonEnlace}`}
         >
           Ver productos
         </Link>
@@ -104,7 +105,7 @@ export function Carrito() {
 
   return (
     <section aria-labelledby="titulo-carrito">
-      <h1 id="titulo-carrito" className="mb-6 text-4xl font-bold">
+      <h1 id="titulo-carrito" className="mb-6 text-4xl font-semibold">
         Tu carrito
       </h1>
 
@@ -115,15 +116,15 @@ export function Carrito() {
           ))}
         </ul>
 
-        <aside className="h-fit rounded-3xl border-2 border-tinta bg-amarillo p-6">
-          <h2 className="text-2xl font-bold">Resumen</h2>
+        <aside className="h-fit rounded-3xl bg-white p-6 shadow-tarjeta">
+          <h2 className="text-2xl font-semibold">Resumen</h2>
           <p className="mt-4 flex items-baseline justify-between">
             <span className="text-lg">Total</span>
-            <span className="font-titulos text-3xl font-bold text-tinta">{formatearPrecio(carrito.total)}</span>
+            <span className="font-titulos text-3xl font-semibold text-tinta">{formatearPrecio(carrito.total)}</span>
           </p>
           <Link
             to="/checkout"
-            className="mt-6 block rounded-full border-2 border-tinta bg-tinta px-6 py-4 text-center font-titulos text-xl font-semibold text-fondo transition hover:bg-fondo hover:text-tinta"
+            className="mt-6 block rounded-full bg-tinta px-6 py-4 text-center font-titulos text-xl font-semibold text-fondo shadow-boton transition hover:bg-amarillo hover:text-tinta"
           >
             Finalizar compra
           </Link>

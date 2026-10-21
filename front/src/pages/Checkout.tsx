@@ -6,6 +6,7 @@ import { type DatosDeContacto, useCrearPedido } from '../api/pedidos'
 import { useUsuario } from '../api/usuarios'
 import { Campo, estiloBotonPrincipal, estiloCampo } from '../components/Campo'
 import { type ErroresDeContacto, validarContacto } from '../lib/checkout'
+import { estiloAviso, estiloBotonEnlace, estiloNota } from '../lib/estilos'
 import { formatearPrecio } from '../lib/formato'
 import { enfocarPrimerError } from '../lib/formularios'
 
@@ -55,10 +56,10 @@ export function Checkout() {
   if (!carrito.data || carrito.data.items.length === 0) {
     return (
       <section className="py-12 text-center">
-        <h1 className="text-4xl font-bold">No hay nada para comprar todavía</h1>
+        <h1 className="text-4xl font-semibold">No hay nada para comprar todavía</h1>
         <Link
           to="/"
-          className="mt-6 inline-block rounded-full border-2 border-tinta bg-amarillo px-6 py-3 font-titulos text-lg font-semibold hover:bg-tinta hover:text-fondo"
+          className={`mt-6 ${estiloBotonEnlace}`}
         >
           Ver productos
         </Link>
@@ -68,7 +69,7 @@ export function Checkout() {
 
   return (
     <section aria-labelledby="titulo-checkout">
-      <h1 id="titulo-checkout" className="mb-6 text-4xl font-bold">
+      <h1 id="titulo-checkout" className="mb-6 text-4xl font-semibold">
         Finalizar compra
       </h1>
 
@@ -76,11 +77,11 @@ export function Checkout() {
         {/* noValidate: los avisos los muestra la pagina, en castellano y al lado de cada campo. */}
         <form noValidate onSubmit={enviar} className="space-y-5">
           {usuario ? (
-            <p className="rounded-2xl bg-amarillo-suave p-4">
+            <p className={estiloNota}>
               Estás comprando con tu cuenta, <strong>{usuario.email}</strong>. El pedido va a quedar en “Mis pedidos”.
             </p>
           ) : (
-            <p className="rounded-2xl bg-amarillo-suave p-4">
+            <p className={estiloNota}>
               Podés comprar sin cuenta. Si tenés una,{' '}
               <Link to="/ingresar?volver=/checkout" className="font-semibold underline">
                 ingresá
@@ -155,7 +156,7 @@ export function Checkout() {
           </Campo>
 
           {crearPedido.isError && (
-            <div role="alert" className="rounded-2xl border-2 border-dashed border-tinta bg-amarillo-suave p-4">
+            <div role="alert" className={estiloAviso}>
               <p className="font-semibold">{crearPedido.error.message}</p>
               <Link to="/carrito" className="mt-1 inline-block underline">
                 Revisar el carrito
@@ -172,8 +173,8 @@ export function Checkout() {
           </button>
         </form>
 
-        <aside className="h-fit rounded-3xl border-2 border-tinta bg-amarillo p-6">
-          <h2 className="text-2xl font-bold">Tu pedido</h2>
+        <aside className="h-fit rounded-3xl bg-white p-6 shadow-tarjeta">
+          <h2 className="text-2xl font-semibold">Tu pedido</h2>
           <ul className="mt-4 space-y-3">
             {carrito.data.items.map((item) => (
               <li key={item.id} className="flex justify-between gap-4">
@@ -187,9 +188,9 @@ export function Checkout() {
               </li>
             ))}
           </ul>
-          <p className="mt-4 flex items-baseline justify-between border-t-2 border-tinta pt-4">
+          <p className="mt-4 flex items-baseline justify-between border-t border-borde pt-4">
             <span className="text-lg">Total</span>
-            <span className="font-titulos text-3xl font-bold text-tinta">{formatearPrecio(carrito.data.total)}</span>
+            <span className="font-titulos text-3xl font-semibold text-tinta">{formatearPrecio(carrito.data.total)}</span>
           </p>
           <p className="mt-3 text-sm">El pago y la entrega se coordinan por WhatsApp después de confirmar.</p>
         </aside>

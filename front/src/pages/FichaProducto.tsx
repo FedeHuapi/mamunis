@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router'
 
 import { useAgregarAlCarrito } from '../api/carrito'
 import { useProducto } from '../api/productos'
+import { estiloBotonPrincipal } from '../components/Campo'
 import { SelectorTalle } from '../components/SelectorTalle'
 import { leerEnteroPositivo } from '../lib/catalogo'
 import { formatearPrecio } from '../lib/formato'
@@ -36,7 +37,7 @@ function Ficha({ id }: { id: number }) {
       </Link>
 
       <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-        <div className="aspect-square overflow-hidden rounded-3xl border-2 border-tinta bg-amarillo-suave">
+        <div className="aspect-[4/5] overflow-hidden rounded-3xl bg-arena">
           {producto.imagen ? (
             <img src={producto.imagen} alt={producto.nombre} className="h-full w-full object-cover" />
           ) : (
@@ -47,8 +48,8 @@ function Ficha({ id }: { id: number }) {
         <div className="space-y-6">
           <div>
             <p className="text-sm font-bold uppercase tracking-wide text-texto-suave">{producto.categoria.nombre}</p>
-            <h1 className="mt-1 text-4xl font-bold">{producto.nombre}</h1>
-            <p className="mt-3 font-titulos text-3xl font-bold text-tinta">{formatearPrecio(producto.precio)}</p>
+            <h1 className="mt-1 text-4xl font-semibold">{producto.nombre}</h1>
+            <p className="mt-3 font-titulos text-3xl font-medium text-tinta">{formatearPrecio(producto.precio)}</p>
           </div>
 
           {producto.descripcion && <p className="whitespace-pre-line text-lg">{producto.descripcion}</p>}
@@ -76,7 +77,7 @@ function Ficha({ id }: { id: number }) {
             <div className="space-y-3">
               <button
                 type="button"
-                className="w-full rounded-full border-2 border-tinta bg-tinta px-6 py-4 font-titulos text-xl font-semibold text-fondo transition hover:bg-amarillo hover:text-tinta disabled:cursor-not-allowed disabled:border-borde disabled:bg-borde disabled:text-texto-suave md:w-auto"
+                className={estiloBotonPrincipal}
                 disabled={!elegida || agregar.isPending}
                 onClick={() => elegida && agregar.mutate({ varianteId: elegida.id, cantidad: 1 })}
               >

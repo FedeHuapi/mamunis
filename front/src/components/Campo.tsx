@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 
 export const estiloCampo =
-  'w-full rounded-2xl border-2 border-tinta bg-white px-4 py-3 text-lg aria-invalid:border-dashed focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-tinta'
+  'w-full rounded-xl border border-borde-fuerte bg-white px-4 py-3 text-lg aria-invalid:border-2 aria-invalid:border-dashed aria-invalid:border-tinta focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-tinta'
 
 export const estiloBotonPrincipal =
-  'w-full rounded-full border-2 border-tinta bg-tinta px-6 py-4 font-titulos text-xl font-semibold text-fondo transition hover:bg-amarillo hover:text-tinta disabled:cursor-not-allowed disabled:border-borde disabled:bg-borde disabled:text-texto-suave md:w-auto'
+  'w-full rounded-full bg-tinta px-6 py-4 font-titulos text-xl font-semibold text-fondo shadow-boton transition hover:bg-amarillo hover:text-tinta disabled:cursor-not-allowed disabled:bg-borde disabled:text-texto-suave disabled:shadow-none md:w-auto'
 
 type PropsDelControl = { id: string; 'aria-invalid': boolean; 'aria-describedby': string | undefined }
 
@@ -26,7 +26,7 @@ export function Campo({ id, etiqueta, ayuda, error, children }: Props) {
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block font-titulos text-lg font-semibold text-tinta">
+      <label htmlFor={id} className="mb-1.5 block font-bold text-tinta">
         {etiqueta}
       </label>
       {children({ id, 'aria-invalid': Boolean(error), 'aria-describedby': descripcion })}

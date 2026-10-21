@@ -4,6 +4,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
 import { useRegistrarse, useUsuario } from '../api/usuarios'
 import { Campo, estiloBotonPrincipal, estiloCampo } from '../components/Campo'
 import { type DatosDeRegistro, rutaParaVolver, validarRegistro } from '../lib/cuenta'
+import { estiloAviso } from '../lib/estilos'
 import { enfocarPrimerError } from '../lib/formularios'
 
 const CAMPOS: (keyof DatosDeRegistro)[] = ['nombre', 'email', 'password', 'repetirPassword']
@@ -34,7 +35,7 @@ export function Registro() {
 
   return (
     <section aria-labelledby="titulo-registro" className="mx-auto max-w-md">
-      <h1 id="titulo-registro" className="mb-2 text-4xl font-bold">
+      <h1 id="titulo-registro" className="mb-2 text-4xl font-semibold">
         Crear una cuenta
       </h1>
       <p className="mb-6 text-texto-suave">Con una cuenta, tus pedidos quedan guardados para que los puedas consultar.</p>
@@ -97,7 +98,7 @@ export function Registro() {
 
         {/* Por ejemplo "Ya existe una cuenta con ese email". */}
         {registrarse.isError && (
-          <p role="alert" className="rounded-2xl border-2 border-dashed border-tinta bg-amarillo-suave p-4 font-semibold">
+          <p role="alert" className={estiloAviso}>
             {registrarse.error.message}
           </p>
         )}
