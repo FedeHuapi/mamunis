@@ -30,6 +30,30 @@ export const TIENDA = {
   cuit: '[CUIT]',
 }
 
+/*
+  Los textos y la foto de la portada. Igual que arriba: lo que esta entre corchetes falta
+  completarlo.
+
+  Las fotos pueden ser una direccion de internet (por ejemplo, una imagen subida a
+  Cloudinary) o un archivo puesto en front/public: 'front/public/portada.jpg' se escribe
+  '/portada.jpg'. Con null se muestra el logo en su lugar.
+*/
+export const PORTADA = {
+  etiqueta: '[Temporada o novedad]',
+  titulo: 'Ropa para jugar todo el día',
+  bajada: 'Prendas cómodas para chicos y chicas, en talles del 10 al 16.',
+  foto: null as string | null,
+  // Descripcion de la foto para quien no la ve (lectores de pantalla). Si es decorativa, ''.
+  descripcionDeLaFoto: '',
+
+  sobre: {
+    titulo: '[Título corto de la historia]',
+    texto: '[Cómo empezó la marca, quiénes están detrás y qué la hace distinta. Dos o tres líneas: la historia completa va en su propia página.]',
+    foto: null as string | null,
+    descripcionDeLaFoto: '',
+  },
+}
+
 /** Un dato que todavia no se completo. */
 export function estaPendiente(valor: string): boolean {
   return valor.trim().startsWith('[')

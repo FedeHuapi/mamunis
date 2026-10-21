@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { PRODUCTOS_POR_PAGINA, useCategorias, useProductos } from '../api/productos'
 import { FiltroCategorias } from '../components/FiltroCategorias'
 import { Paginacion } from '../components/Paginacion'
+import { Bienvenida, SobreMamunisResumen } from '../components/Portada'
 import { TarjetaProducto } from '../components/TarjetaProducto'
 import { leerEnteroPositivo, totalDePaginas } from '../lib/catalogo'
 
@@ -21,17 +22,16 @@ export function Catalogo() {
     if (nuevaCategoria) siguientes.set('categoria', String(nuevaCategoria))
     if (nuevaPagina > 1) siguientes.set('pagina', String(nuevaPagina))
     setParametros(siguientes)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    // Se vuelve al principio de la grilla, no de la pagina: la franja de bienvenida ya se vio.
+    document.getElementById('productos')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
   }
 
   return (
     <>
-      <section className="mb-12 rounded-[28px] bg-amarillo-suave px-6 py-12 md:px-12">
-        <h1 className="max-w-2xl text-4xl font-semibold leading-tight md:text-5xl">Ropa para jugar todo el día</h1>
-        <p className="mt-4 max-w-xl text-lg text-texto-suave">Prendas cómodas para chicos y chicas, en talles del 10 al 16.</p>
-      </section>
+      <Bienvenida />
 
-      <section aria-labelledby="titulo-catalogo">
+      {/* scroll-mt: al bajar con "Ver productos", el titulo no queda pegado al borde. */}
+      <section id="productos" aria-labelledby="titulo-catalogo" className="scroll-mt-6">
         <h2 id="titulo-catalogo" className="mb-5 text-3xl font-semibold">
           Productos
         </h2>
@@ -80,6 +80,8 @@ export function Catalogo() {
           />
         )}
       </section>
+
+      <SobreMamunisResumen />
     </>
   )
 }
