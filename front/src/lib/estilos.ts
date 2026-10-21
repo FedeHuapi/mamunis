@@ -14,6 +14,10 @@ export const estiloBotonSecundario =
 export const estiloBotonEnlace =
   'inline-block rounded-full bg-tinta px-6 py-3 font-titulos text-lg font-semibold text-fondo shadow-boton transition hover:bg-amarillo hover:text-tinta'
 
+/** La version clara del anterior, para una segunda opcion al lado ("Conocé la marca"). */
+export const estiloBotonEnlaceSecundario =
+  'inline-block rounded-full border border-borde bg-white px-6 py-3 font-titulos text-lg font-semibold text-tinta transition hover:bg-arena'
+
 /** Los botones redondos chicos, como el + y el - de las cantidades. */
 export const estiloBotonRedondo =
   'flex h-10 w-10 items-center justify-center rounded-full border border-borde bg-white font-titulos text-xl font-semibold transition hover:bg-arena disabled:cursor-not-allowed disabled:text-texto-suave disabled:hover:bg-white'
